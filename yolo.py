@@ -18,7 +18,7 @@ class yolo():
         self.checkPath(self.maskOutput)
 
         # Initialize model
-        self.model = YOLO(f'./resources/{self.modelName}.pt')
+        self.model = YOLO(f'./YOLO/{self.modelName}.pt')
 
         # Switch model to use CUDA
         torch.cuda.set_device(0)
