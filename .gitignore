@@ -1,0 +1,5 @@
+testbed.py
+/outputPCD
+/outputDepth
+/outputMask
+resources/20240615_med15.pt
