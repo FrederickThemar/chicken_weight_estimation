@@ -67,7 +67,7 @@ class Main():
             print("ERROR: For this mode, a depth frame must be provided.")
             exit(1)
         self.checkPath(self.depth_path)
-        
+        depthpath = self.depth_path
 
         # Mask frame.
         success = self.yolo.mask_frame(framepath, self.save)
