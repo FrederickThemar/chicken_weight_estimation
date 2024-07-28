@@ -22,6 +22,8 @@ class pcd():
             cy=365.3201904296875,
         )
 
+        self.d_lo, self.d_hi = 10, 1500
+
         # Path PCDs get temporarily stored in
         self.outputPath = "./outputPCD/"
         self.checkPath(self.outputPath)
@@ -29,16 +31,71 @@ class pcd():
         # Store default confidence box
         self.defaultBox = [[350, 325],[1400,925]] 
 
+        # Where filepaths to output PCDs are saved
+        self.pcdPaths = []
+
         print("Done!")
 
-    def pcd_frame(self):
-        pass
+    def pcd_frame(self, colorPath, depthPath, maskPath, save):
+        print("POINTCLOUD FRAME")
+
+        self.color_path = colorPath
+        self.depth_path = depthPath
+        self.mask_path  = maskPath
+
+        # Create output filepath
+        origEnd = self.color_path.split('/')[-1].split('.')[0]
+        pcdPath = f'{self.outputPath}/{origEnd}.ply'
+        
+        accep_mask = False
+        
 
     def pcd_video(self):
         pass
 
     def pcd_live(self):
         pass
+
+    # HELPER: Tests a mask image to see if it is within the confidence box
+    def testMask(framepath, box):
+        # Store the bounds of the box for ease of access
+        yLower = box[0][1]
+        yUpper = box[1][1]
+        xLower = box[0][0]
+        xUpper = box[1][0]
+        
+        origMask = cv2.imread(framepath, cv2.IMREAD_GRAYSCALE)
+
+        # Get the contours for the mask
+        origMask = cv2.imread(framepath, cv2.IMREAD_GRAYSCALE)
+        mask = origMask.astype(bool)
+        contours, _ = cv2.findContours(mask.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+        boxAcceptable = True
+        pointCount = 0
+        numBadContours = 0
+        for contour in contours:
+            for point in contour:
+                pointCount+=1
+                
+                # Store coordinate parts separately
+                point_x = point[0][0]
+                point_y = point[0][1]
+                
+                # Point format: [x, y]. x=0 is far left, y=0 is top of the screen.
+                # If point is outside the bounds, set bool to False and exit loop.
+                if point_x <= xLower or point_x >= xUpper:
+                    numBadContours+=1
+                    break
+                if point_y <= yLower or point_y >= yUpper:
+                    numBadContours+=1
+                    break
+
+        # Check to see how many contours in the image are bad.
+        if numBadContours == len(contours):
+            boxAcceptable = False
+
+        return boxAcceptable
 
     # HELPER: Checks if input filepath exists.
     def checkPath(self, inputPath):
