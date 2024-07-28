@@ -2,4 +2,5 @@ testbed.py
 /outputPCD
 /outputDepth
 /outputMask
+/__pycache__
 resources/20240615_med15.pt
