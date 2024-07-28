@@ -1,3 +1,4 @@
+import os
 import cv2
 import numpy as np
 import open3d as o3d
@@ -21,6 +22,13 @@ class pcd():
             cy=365.3201904296875,
         )
 
+        # Path PCDs get temporarily stored in
+        self.outputPath = "./outputPCD/"
+        self.checkPath(self.outputPath)
+
+        # Store default confidence box
+        self.defaultBox = [[350, 325],[1400,925]] 
+
         print("Done!")
 
     def pcd_frame(self):
@@ -31,6 +39,13 @@ class pcd():
 
     def pcd_live(self):
         pass
+
+    # HELPER: Checks if input filepath exists.
+    def checkPath(self, inputPath):
+        if not os.path.exists(inputPath):
+            print("ERROR: Path does not exist.")
+            print(f'Path: {inputPath}')
+            exit(1)
 
 # Showing the user a bounding box for a given image, and taking user input to make new box.
 class BoundingBoxWidget(object):
