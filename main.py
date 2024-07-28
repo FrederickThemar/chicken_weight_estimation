@@ -75,7 +75,7 @@ class Main():
             print("ERROR: No chicken detected in frame.")
             exit(1)
         
-        
+        self.pcd.pcd_frame(framepath, depthpath, self.yolo.maskPaths[0], self.save)
 
     # Estimates weight of all the frames in a video
     def process_video(self):
@@ -99,8 +99,12 @@ if __name__ == '__main__':
     print("Begin.")
 
     # Grab user input to determine mode and filepath
-    TEMP_path = '/mnt/khoavoho/datasets/chicken_weight_dataset/jzbumgar/Depth/Spring2024/20240326/chicken3/color/000100.jpg'
-    TEMP_depth = '/mnt/khoavoho/datasets/chicken_weight_dataset/jzbumgar/Depth/Spring2024/20240326/chicken3/depth/000100.png'
+    # Unacceptable mask:
+    # TEMP_path = '/mnt/khoavoho/datasets/chicken_weight_dataset/jzbumgar/Depth/Spring2024/20240326/chicken3/color/000100.jpg'
+    # TEMP_depth = '/mnt/khoavoho/datasets/chicken_weight_dataset/jzbumgar/Depth/Spring2024/20240326/chicken3/depth/000100.png'
+    # Acceptable mask
+    TEMP_path = '/mnt/khoavoho/datasets/chicken_weight_dataset/jzbumgar/Depth/Spring2024/20240409/chicken20/color/000098.jpg'
+    TEMP_depth = '/mnt/khoavoho/datasets/chicken_weight_dataset/jzbumgar/Depth/Spring2024/20240409/chicken20/depth/000098.png'
 
     # Initialize Main object to handle the pipeline
     main = Main(path=TEMP_path, depth=TEMP_depth, mode=0)
