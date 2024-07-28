@@ -2,6 +2,7 @@ import os
 import cv2
 import numpy as np
 import open3d as o3d
+import matplotlib.pyplot as plt
 
 from tqdm import tqdm
 
@@ -37,18 +38,53 @@ class pcd():
         print("Done!")
 
     def pcd_frame(self, colorPath, depthPath, maskPath, save):
-        print("POINTCLOUD FRAME")
+        print("\nGenerating pointcloud... ", end="", flush=True)
 
         self.color_path = colorPath
         self.depth_path = depthPath
         self.mask_path  = maskPath
 
-        # Create output filepath
+        # Create output filepaths
         origEnd = self.color_path.split('/')[-1].split('.')[0]
+        depthmaskPath = f'./outputDepMask/{origEnd}.png'
         pcdPath = f'{self.outputPath}/{origEnd}.ply'
         
-        accep_mask = False
+        accep_mask = self.testMask(self.mask_path, self.defaultBox)
+        if not accep_mask:
+            print("\nERROR: The mask for this frame falls outside the acceptable boundaries for the model. Try a different frame.")
+            exit(1)
+
+        rgb = plt.imread(self.color_path) / 255
+        depth = cv2.imread(self.depth_path, flags=cv2.IMREAD_ANYCOLOR | cv2.IMREAD_ANYDEPTH)
+
+        frame = cv2.imread(self.mask_path, flags=cv2.IMREAD_ANYCOLOR | cv2.IMREAD_ANYDEPTH)
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        mask = np.zeros_like(frame)
+        mask[frame > 0] = 1
+        mask[depth < self.d_lo] = 0
+        mask[depth > self.d_hi] = 0
+
+        depth[mask == 0] = 0
+        # depth[mask == 0] = 255
+
+        # Write depthmask image
+        cv2.imwrite(depthmaskPath, depth)
+
+        # Create pointcloud using depthmask
+        rgb_im = o3d.io.read_image(self.color_path)
+        depth_im = o3d.io.read_image(depthmaskPath)
+        rgbd_im = o3d.geometry.RGBDImage.create_from_color_and_depth(rgb_im, depth_im, convert_rgb_to_intensity=False)
+        pcd = o3d.geometry.PointCloud.create_from_rgbd_image(
+            rgbd_im,
+            self.cam
+        )
+        pcd.translate(-pcd.get_center())
+        o3d.io.write_point_cloud(pcdPath, pcd)
+
+        # Add pointcloud to object list
+        self.pcdPaths.append(pcdPath)
         
+        print("Done!")
 
     def pcd_video(self):
         pass
@@ -57,7 +93,7 @@ class pcd():
         pass
 
     # HELPER: Tests a mask image to see if it is within the confidence box
-    def testMask(framepath, box):
+    def testMask(self, framepath, box):
         # Store the bounds of the box for ease of access
         yLower = box[0][1]
         yUpper = box[1][1]
