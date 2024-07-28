@@ -1,6 +1,7 @@
 testbed.py
 /outputPCD
 /outputDepth
+/outputDepMask
 /outputMask
 /__pycache__
 /YOLO
