@@ -51,7 +51,6 @@ class kpconv():
         else:
             self.device = torch.device("cpu")
         self.net.to(self.device)
-
         
         checkpoint = torch.load(self.chkp_path,map_location='cuda:0', weights_only=False)
         # checkpoint = torch.load(self.chkp_path)
@@ -59,6 +58,8 @@ class kpconv():
         # self.epoch = checkpoint['epoch']
         self.net.eval()
         # print("Model and training state restored.")
+
+        self.outputs = []
 
     # def read_pcd(self, pcdPath):
     #     pcd = np.asarray(o3d.io.read_point_cloud(pcdPath).points).astype(np.float32)
@@ -106,11 +107,10 @@ class kpconv():
             batch.to(self.device)
             output = self.net(batch, self.config)
 
-        print(f'COUNT: {count}')
         output = output.cpu().detach().numpy()
-        print(f'OUTPUT: {output}')
-        # return output
-    
+
+        self.outputs.append(output)
+
     def estimate_video(self, pcdVideoPath):
         pcds = [self.read_pcd(pcdPath) for pcdPath in pcdVideoPath]
         pcds = torch.stack(pcds, dim=0)  # TxNx3

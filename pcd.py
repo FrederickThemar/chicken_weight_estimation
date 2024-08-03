@@ -32,24 +32,24 @@ class pcd():
         # Store default confidence box
         self.defaultBox = [[350, 325],[1400,925]] 
 
-        # Where filepaths to output PCDs are saved
-        self.pcdPaths = []
+        # Where output PCD is saved
+        self.savedPCD = None
 
         print("Done!")
 
-    def pcd_frame(self, colorPath, depthPath, maskPath, save):
+    def pcd_frame(self, colorPath, depthPath, mask, save):
         print("\nGenerating pointcloud... ", end="", flush=True)
 
         self.color_path = colorPath
         self.depth_path = depthPath
-        self.mask_path  = maskPath
+        self.mask  = mask
 
         # Create output filepaths
         origEnd = self.color_path.split('/')[-1].split('.')[0]
-        depthmaskPath = f'./outputDepMask/{origEnd}.png'
-        pcdPath = f'{self.outputPath}/{origEnd}.ply'
+        # depthmaskPath = f'./outputDepMask/{origEnd}.png'
+        pcdPath = f'{self.outputPath}/pcd.ply'
         
-        accep_mask = self.testMask(self.mask_path, self.defaultBox)
+        accep_mask = self.testMask(self.mask, self.defaultBox)
         if not accep_mask:
             print("\nERROR: The mask for this frame falls outside the acceptable boundaries for the model. Try a different frame.")
             exit(1)
@@ -57,7 +57,8 @@ class pcd():
         rgb = plt.imread(self.color_path) / 255
         depth = cv2.imread(self.depth_path, flags=cv2.IMREAD_ANYCOLOR | cv2.IMREAD_ANYDEPTH)
 
-        frame = cv2.imread(self.mask_path, flags=cv2.IMREAD_ANYCOLOR | cv2.IMREAD_ANYDEPTH)
+        # frame = cv2.imread(self.mask, flags=cv2.IMREAD_ANYCOLOR | cv2.IMREAD_ANYDEPTH)
+        frame = self.mask
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         mask = np.zeros_like(frame)
         mask[frame > 0] = 1
@@ -68,11 +69,12 @@ class pcd():
         # depth[mask == 0] = 255
 
         # Write depthmask image
-        cv2.imwrite(depthmaskPath, depth)
+        # cv2.imwrite(depthmaskPath, depth)
 
         # Create pointcloud using depthmask
         rgb_im = o3d.io.read_image(self.color_path)
-        depth_im = o3d.io.read_image(depthmaskPath)
+        # open3d_image = o3d.geometry.Image(numpy_image)
+        depth_im = o3d.geometry.Image(depth)
         rgbd_im = o3d.geometry.RGBDImage.create_from_color_and_depth(rgb_im, depth_im, convert_rgb_to_intensity=False)
         pcd = o3d.geometry.PointCloud.create_from_rgbd_image(
             rgbd_im,
@@ -82,7 +84,7 @@ class pcd():
         o3d.io.write_point_cloud(pcdPath, pcd)
 
         # Add pointcloud to object list
-        self.pcdPaths.append(pcdPath)
+        self.savedPCD = pcdPath
         
         print("Done!")
 
@@ -93,17 +95,18 @@ class pcd():
         pass
 
     # HELPER: Tests a mask image to see if it is within the confidence box
-    def testMask(self, framepath, box):
+    def testMask(self, yoloMask, box):
         # Store the bounds of the box for ease of access
         yLower = box[0][1]
         yUpper = box[1][1]
         xLower = box[0][0]
         xUpper = box[1][0]
         
-        origMask = cv2.imread(framepath, cv2.IMREAD_GRAYSCALE)
+        # origMask = cv2.imread(framepath, cv2.IMREAD_GRAYSCALE)
 
         # Get the contours for the mask
-        origMask = cv2.imread(framepath, cv2.IMREAD_GRAYSCALE)
+        # origMask = cv2.imread(framepath, cv2.IMREAD_GRAYSCALE)
+        origMask = cv2.cvtColor(yoloMask, cv2.COLOR_BGR2GRAY)
         mask = origMask.astype(bool)
         contours, _ = cv2.findContours(mask.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 

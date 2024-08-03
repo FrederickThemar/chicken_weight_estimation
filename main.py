@@ -4,7 +4,7 @@ import torch
 from tqdm import tqdm
 from yolo import yolo
 from pcd  import pcd
-from kpvconv import kpconv
+from kpconv import kpconv
 
 # CLASS: creates other objects to manage the video-to-estimate pipeline
 class Main():
@@ -31,10 +31,10 @@ class Main():
         self.checkPath(self.init_path)
 
         # Info for processing methods
-        self.depthOutput = "./outputDepth/"
-        self.pcdOutput = "./outputPCD/"
-        self.checkPath(self.depthOutput)
-        self.checkPath(self.pcdOutput)
+        # self.depthOutput = "./outputDepth/"
+        # self.pcdOutput = "./outputPCD/"
+        # self.checkPath(self.depthOutput)
+        # self.checkPath(self.pcdOutput)
 
         # Initialize YOLO object
         self.yolo = yolo()
@@ -77,10 +77,10 @@ class Main():
             print("ERROR: No chicken detected in frame.")
             exit(1)
         
-        self.pcd.pcd_frame(framepath, depthpath, self.yolo.maskPaths[0], self.save)
-        output = self.kpconv.estimate_frame(self.pcd.pcdPaths[0])
+        self.pcd.pcd_frame(framepath, depthpath, self.yolo.savedMask, self.save)
+        output = self.kpconv.estimate_frame(self.pcd.savedPCD)
 
-        print(f'OUTPUT:\t\t\n{output}')
+        print(f'OUTPUT:\t\t\n{self.kpconv.outputs[0]}')
 
     # Estimates weight of all the frames in a video
     def process_video(self):

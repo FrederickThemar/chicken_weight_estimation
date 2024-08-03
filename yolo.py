@@ -24,8 +24,8 @@ class yolo():
         # torch.cuda.set_device(0)
         self.model.to('cuda')
 
-        # Where filepaths to output masks are saved
-        self.maskPaths = []
+        # Where most recent mask for project is saved
+        self.savedMask = None
 
         print("Done!")
 
@@ -69,10 +69,11 @@ class yolo():
             isolated = cv2.bitwise_and(mask3ch, img)
 
             # Save isolated mask into temp folder
-            maskOutputDir = f'{self.maskOutput}/{origEnd}.png'
-            cv2.imwrite(maskOutputDir, isolated)
+            if save:
+                maskOutputDir = f'{self.maskOutput}/{origEnd}.png'
+                cv2.imwrite(maskOutputDir, isolated)
 
-            self.maskPaths.append(maskOutputDir)
+            self.savedMask = isolated
 
         return success
 
