@@ -4,6 +4,7 @@ import torch
 from tqdm import tqdm
 from yolo import yolo
 from pcd  import pcd
+from kpvconv import kpconv
 
 # CLASS: creates other objects to manage the video-to-estimate pipeline
 class Main():
@@ -38,6 +39,7 @@ class Main():
         # Initialize YOLO object
         self.yolo = yolo()
         self.pcd = pcd()
+        self.kpconv = kpconv()
 
         # Call class method based on mode
         if self.mode == 0:
@@ -76,6 +78,9 @@ class Main():
             exit(1)
         
         self.pcd.pcd_frame(framepath, depthpath, self.yolo.maskPaths[0], self.save)
+        output = self.kpconv.estimate_frame(self.pcd.pcdPaths[0])
+
+        print(f'OUTPUT:\t\t\n{output}')
 
     # Estimates weight of all the frames in a video
     def process_video(self):
