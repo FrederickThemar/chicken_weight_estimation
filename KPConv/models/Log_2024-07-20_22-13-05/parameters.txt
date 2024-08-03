@@ -1,0 +1,83 @@
+# -----------------------------------#
+# Parameters of the training session #
+# -----------------------------------#
+
+# Input parameters
+# ****************
+
+dataset = ChickenWeight
+dataset_task = regression
+num_classes = 1
+in_points_dim = 3
+in_features_dim = 1
+in_radius = 1.000000
+input_threads = 10
+
+# Model parameters
+# ****************
+
+architecture = simple resnetb resnetb_strided resnetb resnetb resnetb_strided resnetb resnetb resnetb_strided resnetb resnetb resnetb_strided resnetb resnetb global_average
+equivar_mode = 
+invar_mode = 
+num_layers = 5
+first_features_dim = 64
+use_batch_norm = 1
+batch_norm_momentum = 0.050000
+
+segmentation_ratio = 1.000000
+
+weight_rescale = 0.001000
+
+result_path = data/chickenweight/results.json
+
+# KPConv parameters
+# *****************
+
+first_subsampling_dl = 0.010000
+num_kernel_points = 15
+conv_radius = 2.500000
+deform_radius = 6.000000
+fixed_kernel_points = center
+KP_extent = 1.200000
+KP_influence = linear
+aggregation_mode = sum
+modulated = 1
+n_frames = 1
+max_in_points = 0
+
+max_val_points = 50000
+
+val_radius = 51.000000
+
+# Training parameters
+# *******************
+
+learning_rate = 0.000100
+momentum = 0.980000
+lr_decay_epochs = 1:0.977237 2:0.977237 3:0.977237 4:0.977237 5:0.977237 6:0.977237 7:0.977237 8:0.977237 9:0.977237 10:0.977237 11:0.977237 12:0.977237 13:0.977237 14:0.977237 15:0.977237 16:0.977237 17:0.977237 18:0.977237 19:0.977237 20:0.977237 21:0.977237 22:0.977237 23:0.977237 24:0.977237 25:0.977237 26:0.977237 27:0.977237 28:0.977237 29:0.977237
+grad_clip_norm = 100.000000
+
+augment_symmetries = 1 1 1
+augment_rotation = none
+augment_noise = 0.001000
+augment_occlusion = none
+augment_occlusion_ratio = 0.200000
+augment_occlusion_num = 1
+augment_scale_anisotropic = 1
+augment_scale_min = 0.900000
+augment_scale_max = 1.100000
+augment_color = 1.000000
+
+weight_decay = 0.001000
+segloss_balance = none
+class_w =
+deform_fitting_mode = point2point
+deform_fitting_power = 1.000000
+deform_lr_factor = 0.100000
+repulse_extent = 1.200000
+batch_num = 128
+val_batch_num = 10
+max_epoch = 30
+epoch_steps = None
+validation_size = 30
+checkpoint_gap = 50
