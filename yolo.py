@@ -21,7 +21,7 @@ class yolo():
         self.model = YOLO(f'./YOLO/{self.modelName}.pt')
 
         # Switch model to use CUDA
-        torch.cuda.set_device(0)
+        # torch.cuda.set_device(0)
         self.model.to('cuda')
 
         # Where filepaths to output masks are saved
