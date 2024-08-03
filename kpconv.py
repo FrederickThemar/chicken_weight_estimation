@@ -15,8 +15,6 @@ from KPConv.archs.architectures import KPCNN, KPFCNN, KPCNN_LinReg
 
 class kpconv():
     def __init__(self):
-        print("KPCONV INITIALIZED")
-
         self.chosen_log = './KPConv/models/Log_2024-07-20_22-13-05'
         self.GPU_ID = '1' # GPU to be used
         
