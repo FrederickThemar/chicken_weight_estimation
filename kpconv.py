@@ -57,7 +57,7 @@ class kpconv():
         self.net.eval()
         # print("Model and training state restored.")
 
-        self.outputs = []
+        # self.outputs = []
 
     # def read_pcd(self, pcdPath):
     #     pcd = np.asarray(o3d.io.read_point_cloud(pcdPath).points).astype(np.float32)
@@ -107,7 +107,8 @@ class kpconv():
 
         output = output.cpu().detach().numpy()
 
-        self.outputs.append(output)
+        # self.outputs.append(output)
+        return output
 
     def estimate_video(self, pcdVideoPath):
         pcds = [self.read_pcd(pcdPath) for pcdPath in pcdVideoPath]

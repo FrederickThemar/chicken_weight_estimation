@@ -33,7 +33,7 @@ class pcd():
         self.defaultBox = [[350, 325],[1400,925]] 
 
         # Where output PCD is saved
-        self.savedPCD = None
+        # self.savedPCD = None
 
         print("Done!")
 
@@ -84,7 +84,8 @@ class pcd():
         o3d.io.write_point_cloud(pcdPath, pcd)
 
         # Add pointcloud to object list
-        self.savedPCD = pcdPath
+        # self.savedPCD = pcdPath
+        return pcd
         
         print("Done!")
 

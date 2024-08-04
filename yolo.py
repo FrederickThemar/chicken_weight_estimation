@@ -35,6 +35,7 @@ class yolo():
         results = self.model(self.frame_path, conf=0.80)
 
         success = False
+        isolated = None
         for result in results:
             mask = result.masks
             if mask is None:
@@ -75,7 +76,7 @@ class yolo():
 
             self.savedMask = isolated
 
-        return success
+        return success, isolated
 
     def mask_video(self, path):
         self.video_path = path

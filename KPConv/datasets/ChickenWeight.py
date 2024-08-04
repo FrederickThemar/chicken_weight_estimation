@@ -176,7 +176,8 @@ class ChickenWeightDataset(PointCloudDataset):
     # Loads single PCD into object using input points from PCD
     def load_single_cloud(self, orient_correction, PCDpath):
         
-        pcd = np.asarray(o3d.io.read_point_cloud(PCDpath).points).astype(np.float32)
+        # pcd = np.asarray(o3d.io.read_point_cloud(PCDpath).points).astype(np.float32)
+        pcd = np.asarray(PCDpath.points).astype(np.float32)
         # Subsample them
         if self.config.first_subsampling_dl > 0:
             point = grid_subsampling(pcd[:, :3], sampleDl=self.config.first_subsampling_dl)
@@ -193,7 +194,7 @@ class ChickenWeightDataset(PointCloudDataset):
         lengths = [p.shape[0] for p in input_points]
         sizes = [l * 4 * 6 for l in lengths]
 
-        input_labels = [PCDpath.split('/')[-1]]
+        input_labels = ['pcd']
         input_infos = np.array([input_labels])
 
         if orient_correction:

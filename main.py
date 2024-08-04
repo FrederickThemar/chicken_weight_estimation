@@ -72,15 +72,15 @@ class Main():
         depthpath = self.depth_path
 
         # Mask frame.
-        success = self.yolo.mask_frame(framepath, self.save)
+        success, mask = self.yolo.mask_frame(framepath, self.save)
         if not success:
             print("ERROR: No chicken detected in frame.")
             exit(1)
         
-        self.pcd.pcd_frame(framepath, depthpath, self.yolo.savedMask, self.save)
-        output = self.kpconv.estimate_frame(self.pcd.savedPCD)
+        pcdPath = self.pcd.pcd_frame(framepath, depthpath, mask, self.save)
+        output = self.kpconv.estimate_frame(pcdPath)
 
-        print(f'OUTPUT:\t\t\n{self.kpconv.outputs[0]}')
+        print(f'OUTPUT:\t\t\n{output}')
 
     # Estimates weight of all the frames in a video
     def process_video(self):
