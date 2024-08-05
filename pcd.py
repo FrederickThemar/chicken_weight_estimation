@@ -38,7 +38,7 @@ class pcd():
         print("Done!")
 
     def pcd_frame(self, colorPath, depthPath, mask, save):
-        print("\nGenerating pointcloud... ", end="", flush=True)
+        # print("\nGenerating pointcloud... ", end="", flush=True)
 
         self.color_path = colorPath
         self.depth_path = depthPath
@@ -83,7 +83,7 @@ class pcd():
         pcd.translate(-pcd.get_center())
         o3d.io.write_point_cloud(pcdPath, pcd)
 
-        print("Done!")
+        # print("Done!")
 
         return pcd
         

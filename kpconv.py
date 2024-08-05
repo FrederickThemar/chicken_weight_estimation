@@ -78,10 +78,11 @@ class kpconv():
     #     return points
 
     def estimate_frame(self, pcdPath):
-        print()
-        print('Data Preparation')
-        print('****************')
-        print(f'Log: {self.chosen_log}')
+        # print("Finding weight")
+        # print()
+        # print('Data Preparation')
+        # print('****************')
+        # print(f'Log: {self.chosen_log}')
 
         # Step 0: load pcdPath into pcd
         # points = self.read_pcd(pcdPath)

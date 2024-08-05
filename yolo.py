@@ -30,6 +30,7 @@ class yolo():
         print("Done!")
 
     def mask_frame(self, path, save):
+        # print("\nMasking frame... ")
         self.frame_path = path
         
         results = self.model(self.frame_path, conf=0.80)
