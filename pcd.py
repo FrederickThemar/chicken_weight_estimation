@@ -83,11 +83,10 @@ class pcd():
         pcd.translate(-pcd.get_center())
         o3d.io.write_point_cloud(pcdPath, pcd)
 
-        # Add pointcloud to object list
-        # self.savedPCD = pcdPath
+        print("Done!")
+
         return pcd
         
-        print("Done!")
 
     def pcd_video(self):
         pass
