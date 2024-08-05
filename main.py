@@ -30,12 +30,6 @@ class Main():
         # Check that filepaths exist, return error otherwise
         self.checkPath(self.init_path)
 
-        # Info for processing methods
-        # self.depthOutput = "./outputDepth/"
-        # self.pcdOutput = "./outputPCD/"
-        # self.checkPath(self.depthOutput)
-        # self.checkPath(self.pcdOutput)
-
         # Initialize YOLO object
         self.yolo = yolo()
         self.pcd = pcd()
@@ -81,7 +75,7 @@ class Main():
         pcdPath = self.pcd.pcd_frame(framepath, depthpath, mask, self.save)
         output = self.kpconv.estimate_frame(pcdPath)
 
-        print(f'OUTPUT:\t\t\n{output}')
+        print(f'OUTPUT:\t\t\n{output[0][0]}')
 
     # Estimates weight of all the frames in a video
     def process_video(self):
@@ -119,7 +113,7 @@ if __name__ == '__main__':
     # TEMP_video = '/mnt/khoavoho/datasets/chicken_weight_dataset/jzbumgar/Spring2024/20240409/chicken_13.mkv'
 
     # Initialize Main object to handle the pipeline
-    main = Main(path=TEMP_path, depth=TEMP_depth, mode=1)
+    main = Main(path=TEMP_path, depth=TEMP_depth, mode=0)
     # main = Main(path=TEMP_video, mode=1)
 
     # Begin the pipeline
