@@ -21,7 +21,6 @@ class yolo():
         self.model = YOLO(f'./YOLO/{self.modelName}.pt')
 
         # Switch model to use CUDA
-        # torch.cuda.set_device(0)
         self.model.to('cuda')
 
         # Where most recent mask for project is saved

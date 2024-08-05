@@ -25,14 +25,6 @@ class kpconv():
 
         # Find all checkpoints in the chosen training folder
         self.chkp_path = os.path.join(self.chosen_log, 'checkpoints', 'current_chkp.tar')
-        # chkps = [f for f in os.listdir(self.chkp_path) if f[:4] == 'chkp']
-
-        # # Find which snapshot to restore
-        # if chkp_idx is None:
-        #     chosen_chkp = 'current_chkp.tar'
-        # else:
-        #     chosen_chkp = np.sort(chkps)[chkp_idx]
-        # chosen_chkp = os.path.join(chosen_log, 'checkpoints', chosen_chkp)
 
         # Initialize configuration class
         self.config = Config()
@@ -53,13 +45,9 @@ class kpconv():
         self.net.to(self.device)
         
         checkpoint = torch.load(self.chkp_path,map_location='cuda:0', weights_only=False)
-        # checkpoint = torch.load(self.chkp_path)
         self.net.load_state_dict(checkpoint['model_state_dict'])
-        # self.epoch = checkpoint['epoch']
         self.net.eval()
-        # print("Model and training state restored.")
 
-        # self.outputs = []
         print("Done!")
 
     # def read_pcd(self, pcdPath):
@@ -78,15 +66,6 @@ class kpconv():
     #     return points
 
     def estimate_frame(self, pcdPath):
-        # print("Finding weight")
-        # print()
-        # print('Data Preparation')
-        # print('****************')
-        # print(f'Log: {self.chosen_log}')
-
-        # Step 0: load pcdPath into pcd
-        # points = self.read_pcd(pcdPath)
-
         # Create Dataloader
         test_dataset = ChickenWeightDataset(self.config, pcdPath, train=False)
         test_sampler = ChickenWeightSampler(test_dataset)
@@ -99,9 +78,6 @@ class kpconv():
                                  num_workers=self.config.input_threads,
                                  pin_memory=True)
 
-        # # Step 1: convert pcd (Nx3) to same shape as batch (1xNx3)
-        # batch = points.unsqueeze(0)
-
         # Step 2: Feeding pcd to network
         count = 0
         for batch in test_loader:
@@ -111,7 +87,6 @@ class kpconv():
 
         output = output.cpu().detach().numpy()
 
-        # self.outputs.append(output)
         return output
 
     def estimate_video(self, pcdVideoPath):
