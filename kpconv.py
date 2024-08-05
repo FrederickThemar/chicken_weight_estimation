@@ -15,6 +15,8 @@ from KPConv.archs.architectures import KPCNN, KPFCNN, KPCNN_LinReg
 
 class kpconv():
     def __init__(self):
+        print("Initializing weight estimation model... ", end="", flush=True)
+
         self.chosen_log = './KPConv/models/Log_2024-07-20_22-13-05'
         self.GPU_ID = '1' # GPU to be used
         
@@ -58,6 +60,7 @@ class kpconv():
         # print("Model and training state restored.")
 
         # self.outputs = []
+        print("Done!")
 
     # def read_pcd(self, pcdPath):
     #     pcd = np.asarray(o3d.io.read_point_cloud(pcdPath).points).astype(np.float32)
