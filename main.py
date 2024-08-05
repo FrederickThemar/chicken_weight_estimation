@@ -18,7 +18,7 @@ class Main():
         if not isinstance(mode, int):
             print("ERROR: mode must be 0, 1, or 2.")
             exit(1)
-        if mode > 2:
+        if mode > 2 or mode < 0:
             print("ERROR: mode must be 0, 1, or 2.")
             exit(1)
         
@@ -41,7 +41,8 @@ class Main():
         self.pcd = pcd()
         self.kpconv = kpconv()
 
-        # Call class method based on mode
+    # Begins the pipeline based on the mode provided to the object
+    def begin(self):
         if self.mode == 0:
             self.process_frame()
         elif self.mode == 1:
@@ -89,7 +90,11 @@ class Main():
         #   - Save the frames separately, then have a list storing the paths to each. Give to pframe() 
         #       - Maybe each item in array can be another JSON, with paths to mask, depth, and color?
         #   - TQDM can run based on number of files in frame folder
-        log("ERROR: Not yet implemented. Process video")
+        videopath = self.init_path
+
+        self.checkPath(self.depth_path)
+
+        print(videopath)
 
     def process_live(self):
         log("ERROR: Not yet implemented. Process live video.")
@@ -111,7 +116,11 @@ if __name__ == '__main__':
     TEMP_path = '/mnt/khoavoho/datasets/chicken_weight_dataset/jzbumgar/Depth/Spring2024/20240409/chicken20/color/000098.jpg'
     TEMP_depth = '/mnt/khoavoho/datasets/chicken_weight_dataset/jzbumgar/Depth/Spring2024/20240409/chicken20/depth/000098.png'
 
+    # TEMP_video = '/mnt/khoavoho/datasets/chicken_weight_dataset/jzbumgar/Spring2024/20240409/chicken_13.mkv'
+
     # Initialize Main object to handle the pipeline
-    main = Main(path=TEMP_path, depth=TEMP_depth, mode=0)
+    main = Main(path=TEMP_path, depth=TEMP_depth, mode=1)
+    # main = Main(path=TEMP_video, mode=1)
 
     # Begin the pipeline
+    main.begin()
