@@ -48,7 +48,7 @@ class kpconv():
         self.net.load_state_dict(checkpoint['model_state_dict'])
         self.net.eval()
 
-        print("Done!")
+        print("Done!\n")
 
     # def read_pcd(self, pcdPath):
     #     pcd = np.asarray(o3d.io.read_point_cloud(pcdPath).points).astype(np.float32)
