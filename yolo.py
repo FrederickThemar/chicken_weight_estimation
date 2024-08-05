@@ -28,11 +28,11 @@ class yolo():
 
         print("Done!")
 
-    def mask_frame(self, path, save):
+    def mask_frame(self, color, save):
         # print("\nMasking frame... ")
-        self.frame_path = path
-        
-        results = self.model(self.frame_path, conf=0.80, verbose=False)
+        # self.frame_path = path
+
+        results = self.model(color, conf=0.80, verbose=False)
 
         success = False
         isolated = None

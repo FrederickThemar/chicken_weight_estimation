@@ -1,4 +1,5 @@
 import os
+import cv2
 import torch
 
 import open3d as o3d
@@ -59,7 +60,9 @@ class Main():
 
     # Estimates weight of an individual frame
     def process_frame(self):
+        # Store color frame
         framepath = self.init_path
+        color = cv2.imread(framepath)
 
         # Make sure depth file provided
         if self.depth_path == None:
@@ -67,15 +70,16 @@ class Main():
             exit(1)
         self.checkPath(self.depth_path)
         depthpath = self.depth_path
+        depth = cv2.imread(self.depth_path, flags=cv2.IMREAD_ANYCOLOR | cv2.IMREAD_ANYDEPTH)
 
         # Mask frame.
-        success, mask = self.yolo.mask_frame(framepath, self.save)
+        success, mask = self.yolo.mask_frame(color, self.save)
         if not success:
             print("ERROR: No chicken detected in frame.")
             exit(1)
         
-        pcdPath = self.pcd.pcd_frame(framepath, depthpath, mask, self.save)
-        output = self.kpconv.estimate_frame(pcdPath)
+        pcd = self.pcd.pcd_frame(color, depth, mask, self.save)
+        output = self.kpconv.estimate_frame(pcd)
 
         print(f'OUTPUT:\t\t\n{output[0][0]}')
 
@@ -132,14 +136,14 @@ if __name__ == '__main__':
     # TEMP_path = '/mnt/khoavoho/datasets/chicken_weight_dataset/jzbumgar/Depth/Spring2024/20240326/chicken3/color/000100.jpg'
     # TEMP_depth = '/mnt/khoavoho/datasets/chicken_weight_dataset/jzbumgar/Depth/Spring2024/20240326/chicken3/depth/000100.png'
     # Acceptable mask
-    # TEMP_path = '/mnt/khoavoho/datasets/chicken_weight_dataset/jzbumgar/Depth/Spring2024/20240409/chicken20/color/000098.jpg'
-    # TEMP_depth = '/mnt/khoavoho/datasets/chicken_weight_dataset/jzbumgar/Depth/Spring2024/20240409/chicken20/depth/000098.png'
+    TEMP_path = '/mnt/khoavoho/datasets/chicken_weight_dataset/jzbumgar/Depth/Spring2024/20240409/chicken20/color/000098.jpg'
+    TEMP_depth = '/mnt/khoavoho/datasets/chicken_weight_dataset/jzbumgar/Depth/Spring2024/20240409/chicken20/depth/000098.png'
 
-    TEMP_video = '/mnt/khoavoho/datasets/chicken_weight_dataset/jzbumgar/Spring2024/20240409/chicken_13.mkv'
+    # TEMP_video = '/mnt/khoavoho/datasets/chicken_weight_dataset/jzbumgar/Spring2024/20240409/chicken_13.mkv'
 
     # Initialize Main object to handle the pipeline
-    # main = Main(path=TEMP_path, depth=TEMP_depth, mode=0)
-    main = Main(path=TEMP_video, mode=1)
+    main = Main(path=TEMP_path, depth=TEMP_depth, mode=0)
+    # main = Main(path=TEMP_video, mode=1)
 
     # Begin the pipeline
     main.begin()

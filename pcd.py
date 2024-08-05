@@ -34,22 +34,27 @@ class pcd():
 
         print("Done!")
 
-    def pcd_frame(self, colorPath, depthPath, mask, save):
-        self.color_path = colorPath
-        self.depth_path = depthPath
-        self.mask  = mask
+    def pcd_frame(self, color, depth, mask, save):
+        # self.color_path = colorPath
+        # self.depth_path = depthPath
+        # self.color = color
+        # self.depth = depth
+        # depth = cv2.cvtColor(depth, )
+        # print(depth.dtype)
+        self.mask = mask
 
         # Create output filepaths
-        origEnd = self.color_path.split('/')[-1].split('.')[0]
-        pcdPath = f'{self.outputPath}/pcd.ply'
+        # origEnd = self.color_path.split('/')[-1].split('.')[0]
+        # pcdPath = f'{self.outputPath}/pcd.ply'
         
         accep_mask = self.testMask(self.mask, self.defaultBox)
         if not accep_mask:
             print("\nERROR: The mask for this frame falls outside the acceptable boundaries for the model. Try a different frame.")
             exit(1)
 
-        rgb = plt.imread(self.color_path) / 255
-        depth = cv2.imread(self.depth_path, flags=cv2.IMREAD_ANYCOLOR | cv2.IMREAD_ANYDEPTH)
+        # rgb = plt.imread(self.color_path) / 255
+        # rgb = self.color / 255
+        # depth = cv2.imread(self.depth_path, flags=cv2.IMREAD_ANYCOLOR | cv2.IMREAD_ANYDEPTH)
 
         # frame = cv2.imread(self.mask, flags=cv2.IMREAD_ANYCOLOR | cv2.IMREAD_ANYDEPTH)
         frame = self.mask
@@ -62,7 +67,8 @@ class pcd():
         depth[mask == 0] = 0
 
         # Create pointcloud using depthmask
-        rgb_im = o3d.io.read_image(self.color_path)
+        # rgb_im = o3d.io.read_image(self.color_path)
+        rgb_im = o3d.geometry.Image(color)
         depth_im = o3d.geometry.Image(depth)
         rgbd_im = o3d.geometry.RGBDImage.create_from_color_and_depth(rgb_im, depth_im, convert_rgb_to_intensity=False)
         pcd = o3d.geometry.PointCloud.create_from_rgbd_image(
@@ -70,7 +76,7 @@ class pcd():
             self.cam
         )
         pcd.translate(-pcd.get_center())
-        o3d.io.write_point_cloud(pcdPath, pcd)
+        # o3d.io.write_point_cloud(pcdPath, pcd)
 
         return pcd
         
