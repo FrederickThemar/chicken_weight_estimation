@@ -33,7 +33,7 @@ class yolo():
         # print("\nMasking frame... ")
         self.frame_path = path
         
-        results = self.model(self.frame_path, conf=0.80)
+        results = self.model(self.frame_path, conf=0.80, verbose=False)
 
         success = False
         isolated = None
