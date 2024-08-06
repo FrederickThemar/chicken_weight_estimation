@@ -49,8 +49,9 @@ class pcd():
         
         accep_mask = self.testMask(self.mask, self.defaultBox)
         if not accep_mask:
-            print("\nERROR: The mask for this frame falls outside the acceptable boundaries for the model. Try a different frame.")
-            exit(1)
+            # print("\nERROR: The mask for this frame falls outside the acceptable boundaries for the model. Try a different frame.")
+            # exit(1)
+            return None
 
         # rgb = plt.imread(self.color_path) / 255
         # rgb = self.color / 255
