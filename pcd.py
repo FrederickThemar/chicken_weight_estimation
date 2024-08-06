@@ -57,19 +57,23 @@ class pcd():
         # depth = cv2.imread(self.depth_path, flags=cv2.IMREAD_ANYCOLOR | cv2.IMREAD_ANYDEPTH)
 
         # frame = cv2.imread(self.mask, flags=cv2.IMREAD_ANYCOLOR | cv2.IMREAD_ANYDEPTH)
+        # Convert depth to openCV image to work with mask
+        temp_depth = np.asarray(depth)
+
         frame = self.mask
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         mask = np.zeros_like(frame)
         mask[frame > 0] = 1
-        mask[depth < self.d_lo] = 0
-        mask[depth > self.d_hi] = 0
+        mask[temp_depth < self.d_lo] = 0
+        mask[temp_depth > self.d_hi] = 0
 
-        depth[mask == 0] = 0
+        temp_depth[mask == 0] = 0
 
         # Create pointcloud using depthmask
         # rgb_im = o3d.io.read_image(self.color_path)
         rgb_im = o3d.geometry.Image(color)
-        depth_im = o3d.geometry.Image(depth)
+        # depth_im = o3d.geometry.Image(depth)
+        depth_im = depth
         rgbd_im = o3d.geometry.RGBDImage.create_from_color_and_depth(rgb_im, depth_im, convert_rgb_to_intensity=False)
         pcd = o3d.geometry.PointCloud.create_from_rgbd_image(
             rgbd_im,
