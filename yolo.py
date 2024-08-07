@@ -34,8 +34,9 @@ class yolo():
 
         results = self.model(color, conf=0.80, verbose=False)
 
-        success = False
+        success  = False
         isolated = None
+        overlay  = None
         for result in results:
             mask = result.masks
             if mask is None:
