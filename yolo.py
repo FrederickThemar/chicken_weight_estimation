@@ -75,8 +75,11 @@ class yolo():
                 cv2.imwrite(maskOutputDir, isolated)
 
             self.savedMask = isolated
+            # overlay = np.asarray(result.cpu().numpy())
+            # overlay = None
+            overlay = result.plot()
 
-        return success, isolated
+        return success, isolated, overlay
 
     def mask_video(self, path):
         self.video_path = path
