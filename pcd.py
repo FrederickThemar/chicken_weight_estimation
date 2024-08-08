@@ -1,5 +1,6 @@
 import os
 import cv2
+import time
 import numpy as np
 import open3d as o3d
 import matplotlib.pyplot as plt
@@ -32,6 +33,8 @@ class pcd():
         # Store default confidence box
         self.defaultBox = [[350, 325],[1400,925]] 
 
+        self.times = []
+
         print("Done!")
 
     def pcd_frame(self, color, depth, mask, save):
@@ -41,6 +44,10 @@ class pcd():
         # self.depth = depth
         # depth = cv2.cvtColor(depth, )
         # print(depth.dtype)
+
+        # Log start time of function
+        start = time.time()
+
         self.mask = mask
 
         # Create output filepaths
@@ -82,6 +89,11 @@ class pcd():
         )
         pcd.translate(-pcd.get_center())
         # o3d.io.write_point_cloud(pcdPath, pcd)
+
+        # Save process time
+        end = time.time()
+        duration = (end - start)
+        self.times.append(duration)
 
         return pcd
         

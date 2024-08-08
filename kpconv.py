@@ -1,4 +1,5 @@
 import os
+import time
 import torch
 import numpy as np
 
@@ -48,6 +49,8 @@ class kpconv():
         self.net.load_state_dict(checkpoint['model_state_dict'])
         self.net.eval()
 
+        self.times = []
+
         print("Done!\n")
 
     # def read_pcd(self, pcdPath):
@@ -66,6 +69,9 @@ class kpconv():
     #     return points
 
     def estimate_frame(self, pcdPath):
+        # Log start time of function
+        start = time.time()
+
         # Create Dataloader
         test_dataset = ChickenWeightDataset(self.config, pcdPath, train=False)
         test_sampler = ChickenWeightSampler(test_dataset)
@@ -86,6 +92,11 @@ class kpconv():
             output = self.net(batch, self.config)
 
         output = output.cpu().detach().numpy()
+
+        # Save process time
+        end = time.time()
+        duration = (end - start)
+        self.times.append(duration)
 
         return output
 

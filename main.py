@@ -1,5 +1,6 @@
 import os
 import cv2
+import time
 import torch
 
 import open3d as o3d
@@ -88,6 +89,9 @@ class Main():
         output = self.kpconv.estimate_frame(pcd)
 
         print(f'\nOUTPUT:\t\t\n{output[0][0]}')
+        print(f'YOLO time:   {self.yolo.times}')
+        print(f'PCD time:    {self.pcd.times}')
+        print(f'KPConv time: {self.kpconv.times}')
 
     # Estimates weight of all the frames in a video
     def process_video(self):
@@ -96,6 +100,9 @@ class Main():
         #   - Save the frames separately, then have a list storing the paths to each. Give to pframe() 
         #       - Maybe each item in array can be another JSON, with paths to mask, depth, and color?
         #   - TQDM can run based on number of files in frame folder
+        
+        # Log start time of function
+        start = time.time()
 
         videopath = self.init_path
 
@@ -191,6 +198,18 @@ class Main():
 
         # Close cv2 window
         cv2.destroyAllWindows()
+
+        # Print process times
+        end = time.time()
+        duration = (end - start)
+        print(f'PROCESS TIME: {duration} seconds, {duration/60} minutes')
+        print(f'YOLO avg time:   {np.mean(self.yolo.times)}')
+        # print(f'YOLO time len:   {len(self.yolo.times)}')
+        print(f'PCD avg time:    {np.mean(self.pcd.times)}')
+        # print(f'PCD time len:    {len(self.pcd.times)}')
+        print(f'KPConv avg time: {np.mean(self.kpconv.times)}')
+        # print(f'KPConv time len: {len(self.kpconv.times)}')
+        # print(self.yolo.times)
 
     def process_live(self):
         log("ERROR: Not yet implemented. Process live video.")

@@ -1,6 +1,7 @@
 import os
 import torch
 import cv2
+import time
 import numpy as np
 
 from tqdm import tqdm
@@ -26,11 +27,17 @@ class yolo():
         # Where most recent mask for project is saved
         self.savedMask = None
 
+        # DEBUG: Used for tracking how long yolo takes to process an image
+        self.times = []
+
         print("Done!")
 
     def mask_frame(self, color, save):
         # print("\nMasking frame... ")
         # self.frame_path = path
+
+        # Log start time of function
+        start = time.time()
 
         results = self.model(color, conf=0.80, verbose=False)
 
@@ -79,6 +86,12 @@ class yolo():
             # overlay = np.asarray(result.cpu().numpy())
             # overlay = None
             overlay = result.plot()
+
+        if success is not False:
+            # Save process time
+            end = time.time()
+            duration = (end - start)
+            self.times.append(duration)
 
         return success, isolated, overlay
 
