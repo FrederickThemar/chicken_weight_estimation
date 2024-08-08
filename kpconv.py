@@ -50,6 +50,12 @@ class kpconv():
         self.net.eval()
 
         self.times = []
+        self.dataset_times = []
+        self.sampler_times = []
+        self.collate_times = []
+        self.loader_times =  []
+        self.loop_times =    []
+        self.output_times =  []
 
         print("Done!\n")
 
@@ -74,8 +80,25 @@ class kpconv():
 
         # Create Dataloader
         test_dataset = ChickenWeightDataset(self.config, pcdPath, train=False)
+
+        dataset_end = time.time()
+        dataset_time = dataset_end - start
+        self.dataset_times.append(dataset_time)
+        sampler_start = time.time()
+
         test_sampler = ChickenWeightSampler(test_dataset)
+
+        sampler_end = time.time()
+        sampler_time = sampler_end - sampler_start
+        self.sampler_times.append(sampler_time)
+        collate_start = time.time()
+
         collate_fn = ChickenWeightCollate
+
+        collate_end = time.time()
+        collate_time = collate_end - collate_start
+        self.collate_times.append(collate_time)
+        loader_start = time.time()
 
         test_loader = DataLoader(test_dataset,
                                  batch_size=1,
@@ -84,14 +107,27 @@ class kpconv():
                                  num_workers=self.config.input_threads,
                                  pin_memory=True)
 
+        loader_end = time.time()
+        loader_time = loader_end - loader_start
+        self.loader_times.append(loader_time)
+
         # Step 2: Feeding pcd to network
         count = 0
+        loop_start = time.time()
         for batch in test_loader:
             count+=1
             batch.to(self.device)
             output = self.net(batch, self.config)
+        loop_end = time.time()
+        loop_time = loop_end - loop_start
+        self.loop_times.append(loop_time)
+        output_start = time.time()
 
         output = output.cpu().detach().numpy()
+
+        output_end = time.time()
+        output_time = output_end - output_start
+        self.output_times.append(output_time)
 
         # Save process time
         end = time.time()

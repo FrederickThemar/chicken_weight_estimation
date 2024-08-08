@@ -210,6 +210,12 @@ class Main():
         print(f'KPConv avg time: {np.mean(self.kpconv.times)}')
         # print(f'KPConv time len: {len(self.kpconv.times)}')
         # print(self.yolo.times)
+        print(f'\nDataset avg time: {np.mean(self.kpconv.dataset_times)}')
+        print(f'Sampler avg time: {np.mean(self.kpconv.sampler_times)}')
+        print(f'Collate avg time: {np.mean(self.kpconv.collate_times)}')
+        print(f'Loader avg time:  {np.mean(self.kpconv.loader_times)}')
+        print(f'Loop avg time:    {np.mean(self.kpconv.loop_times)}')
+        print(f'Output avg time:  {np.mean(self.kpconv.output_times)}')
 
     def process_live(self):
         log("ERROR: Not yet implemented. Process live video.")
