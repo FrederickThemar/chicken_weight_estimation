@@ -14,9 +14,6 @@ from kpconv import kpconv
 # CLASS: creates other objects to manage the video-to-estimate pipeline
 class Main():
     def __init__(self, path=None, depth=None, mode=None, save=False):
-        if path == None:
-            print("ERROR: filepath empty.")
-            exit(1)
         if mode == None:
             print("ERROR: mode empty.")
             exit(1)
@@ -32,8 +29,14 @@ class Main():
         self.init_path = path
         self.depth_path = depth
 
-        # Check that filepaths exist, return error otherwise
-        self.checkPath(self.init_path)
+        # If not using live-video mode, need to check that path to video or color frame.
+        if self.mode != 2:
+            if self.init_path == None:
+                print("ERROR: filepath empty.")
+                exit(1)
+
+            # Check that filepaths exist, return error otherwise
+            self.checkPath(self.init_path)
 
         # Initialize YOLO object
         self.yolo = yolo()
@@ -210,14 +213,18 @@ class Main():
         print(f'KPConv avg time: {np.mean(self.kpconv.times)}')
         # print(f'KPConv time len: {len(self.kpconv.times)}')
         # print(self.yolo.times)
-        print(f'\nDataset avg time: {np.mean(self.kpconv.dataset_times)}')
-        print(f'Sampler avg time: {np.mean(self.kpconv.sampler_times)}')
-        print(f'Collate avg time: {np.mean(self.kpconv.collate_times)}')
-        print(f'Loader avg time:  {np.mean(self.kpconv.loader_times)}')
-        print(f'Loop avg time:    {np.mean(self.kpconv.loop_times)}')
-        print(f'Output avg time:  {np.mean(self.kpconv.output_times)}')
+        # print(f'\nCount avg time:   {np.mean(self.kpconv.count_times)}')
+        # print(f'Batch avg time:   {np.mean(self.kpconv.batch_times)}')
+        # print(f'Output avg time:  {np.mean(self.kpconv.output_times)}')
+        print(f'\nLoop start time:  {np.mean(self.kpconv.loop_times)}')
+        # print(f'For loop len:     {np.mean(self.kpconv.counts_len)}')
+        # print(f'For loop count:   {np.mean(self.kpconv.counts_count)}')
+        # print(f'Lens: count {len(self.kpconv.count_times)}, batch {len(self.kpconv.batch_times)}, outputs {len(self.kpconv.output_times)}, loop {len(self.kpconv.loop_times)}')
 
     def process_live(self):
+        # Idea: Have it show avg error every 10 frames processed
+        #   - Can show a message saying 'No chicken detected!' if nothing seen by YOLO yet.
+        #   - Use a Bool to see if chicken detected since program began, and a second to see if prev message printed yet
         log("ERROR: Not yet implemented. Process live video.")
 
 # DEBUG: Prints debug messages. Remove later.
@@ -242,7 +249,8 @@ if __name__ == '__main__':
 
     # Initialize Main object to handle the pipeline
     # main = Main(path=TEMP_path, depth=TEMP_depth, mode=0)
-    main = Main(path=TEMP_video, mode=1)
+    main = Main(path=TEMP_video, mode=2)
+    # main = Main(mode=2)
 
     # Begin the pipeline
     main.begin()
