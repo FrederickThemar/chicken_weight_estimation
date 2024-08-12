@@ -10,6 +10,7 @@ from tqdm import tqdm
 from yolo import yolo
 from pcd  import pcd
 from kpconv import kpconv
+from azure import ViewerWithCallback
 
 # CLASS: creates other objects to manage the video-to-estimate pipeline
 class Main():
@@ -225,7 +226,11 @@ class Main():
         # Idea: Have it show avg error every 10 frames processed
         #   - Can show a message saying 'No chicken detected!' if nothing seen by YOLO yet.
         #   - Use a Bool to see if chicken detected since program began, and a second to see if prev message printed yet
-        log("ERROR: Not yet implemented. Process live video.")
+        print("BEGIN LIVE PROCESS")
+        # Config for live Azure
+        config = o3d.io.AzureKinectSensorConfig()
+
+        viewer = ViewerWithCallback(config, 0, True)
 
 # DEBUG: Prints debug messages. Remove later.
 def log(inputStr):
