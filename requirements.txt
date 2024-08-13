@@ -1,5 +1,7 @@
 Commands for conda install:
 conda create -n [YOUR_ENV_NAME] python=3.8 pip ipython
 conda install -c pytorch -c nvidia -c conda-forge pytorch torchvision pytorch-cuda=11.8 ultralytics
-conda install -c open3d-admin open3d
+//conda install -c open3d-admin open3d
+pip install open3d
 conda install scipy pandas tqdm
+Need Azure SDK <= v1.4.1
