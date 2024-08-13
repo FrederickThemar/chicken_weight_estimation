@@ -97,6 +97,83 @@ class Main():
         print(f'PCD time:    {self.pcd.times}')
         print(f'KPConv time: {self.kpconv.times}')
 
+    # Runs a given RGBD frame through the pipeline.
+    def handle_rgbd(self, rgbd, count):
+        # Store the color and depth frames
+        # color = rgbd.color
+        depth = rgbd.depth
+        
+        # This might not be needed!
+        DEBUG_depthCV2 = np.asarray(depth)
+        DEBUG_depthCV2 = cv2.cvtColor(DEBUG_depthCV2, cv2.COLOR_RGB2BGR)
+        color = np.asarray(rgbd.color)
+        color = cv2.cvtColor(color, cv2.COLOR_RGB2BGR)
+        # print(DEBUG_depthCV2.dtype)
+        # cv2.imwrite('img.png',DEBUG_depthCV2)
+        # o3d.io.write_image('img2.png', depth)
+        # cv2.waitKey(0)
+
+        success, mask, overlay = self.yolo.mask_frame(color, self.save)
+        if not success:
+            # Write frame count
+            color = cv2.rectangle(color, (0, 0), (250, 50), (200,0,0), -1)
+            color = cv2.putText(
+                color,
+                f'Frame: {count+1}',
+                (15, 35),
+                cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+            # cv2.imshow('frame', color)
+            # cv2.waitKey(10)
+            
+            return None, color
+            # count+=1
+            # continue
+            
+
+        pcd = self.pcd.pcd_frame(color, depth, mask, self.save)
+        if pcd == None:
+            # Write frame count
+            color = cv2.rectangle(color, (0, 0), (250, 50), (200,0,0), -1)
+            color = cv2.putText(
+                color,
+                f'Frame: {count+1}',
+                (15, 35),
+                cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+            # cv2.imshow('frame', color)
+            # cv2.waitKey(10)
+            
+            return None, color
+            # count+=1
+            # continue
+
+        output = self.kpconv.estimate_frame(pcd)
+        # outputs.append(output)
+        
+        # Write output on visualization frame
+        overlay = cv2.rectangle(overlay, (0, 0), (250, 50), (200,0,0), -1)
+        overlay = cv2.putText(
+            overlay,
+            f'Frame: {count+1}',
+            (15, 35),
+            cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+        overlay = cv2.rectangle(overlay, (0, 50), (250, 100), (0,200,0), -1)
+        overlay = cv2.putText(
+            overlay,
+            'Output: %.2f' % round(output[0][0],2),
+            (15, 85),
+            cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+
+
+        # # Display the visualization frame
+        # cv2.imshow('frame', overlay)
+        # cv2.waitKey(10)
+
+        return output, overlay
+
+        # count+=1
+        # break
+
+
     # Estimates weight of all the frames in a video
     def process_video(self):
         # Maybe use process_frame for this? 
@@ -125,78 +202,22 @@ class Main():
             if rgbd is None:
                 continue
 
-            # Store the color and depth frames
-            # color = rgbd.color
-            depth = rgbd.depth
-            
-            # This might not be needed!
-            DEBUG_depthCV2 = np.asarray(depth)
-            DEBUG_depthCV2 = cv2.cvtColor(DEBUG_depthCV2, cv2.COLOR_RGB2BGR)
-            color = np.asarray(rgbd.color)
-            color = cv2.cvtColor(color, cv2.COLOR_RGB2BGR)
-            # print(DEBUG_depthCV2.dtype)
-            # cv2.imwrite('img.png',DEBUG_depthCV2)
-            # o3d.io.write_image('img2.png', depth)
-            # cv2.waitKey(0)
+            output, overlay = self.handle_rgbd(rgbd, count)
 
-            success, mask, overlay = self.yolo.mask_frame(color, self.save)
-            if not success:
-                # Write frame count
-                color = cv2.rectangle(color, (0, 0), (250, 50), (200,0,0), -1)
-                color = cv2.putText(
-                    color,
-                    f'Frame: {count+1}',
-                    (15, 35),
-                    cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
-                cv2.imshow('frame', color)
+            if output is None:
+                cv2.imshow('frame', overlay)
                 cv2.waitKey(10)
-                
+            
                 count+=1
                 continue
-
-            pcd = self.pcd.pcd_frame(color, depth, mask, self.save)
-            if pcd == None:
-                # Write frame count
-                color = cv2.rectangle(color, (0, 0), (250, 50), (200,0,0), -1)
-                color = cv2.putText(
-                    color,
-                    f'Frame: {count+1}',
-                    (15, 35),
-                    cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
-                cv2.imshow('frame', color)
-                cv2.waitKey(10)
-                
-                count+=1
-                continue
-
-            output = self.kpconv.estimate_frame(pcd)
-            outputs.append(output)
-            
-            # Write output on visualization frame
-            overlay = cv2.rectangle(overlay, (0, 0), (250, 50), (200,0,0), -1)
-            overlay = cv2.putText(
-                overlay,
-                f'Frame: {count+1}',
-                (15, 35),
-                cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
-            overlay = cv2.rectangle(overlay, (0, 50), (250, 100), (0,200,0), -1)
-            overlay = cv2.putText(
-                overlay,
-                'Output: %.2f' % round(output[0][0],2),
-                (15, 85),
-                cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
-
 
             # Display the visualization frame
             cv2.imshow('frame', overlay)
             cv2.waitKey(10)
 
+            outputs.append(output)
             count+=1
-            # break
-        print(f'COUNT: {count}')
-        print(f'LEN:   {len(outputs)}')
-        print(f'AVG:   {np.mean(outputs)}')
-
+            
         # Close the video
         reader.close()
 
@@ -222,6 +243,11 @@ class Main():
         # print(f'For loop count:   {np.mean(self.kpconv.counts_count)}')
         # print(f'Lens: count {len(self.kpconv.count_times)}, batch {len(self.kpconv.batch_times)}, outputs {len(self.kpconv.output_times)}, loop {len(self.kpconv.loop_times)}')
 
+    # # Callback function. Exit loop in process_live when user hits Esc
+    # def escape_callback(self, vis):
+    #     self.flag_exit = True
+    #     return False
+
     def process_live(self):
         # Idea: Have it show avg error every 10 frames processed
         #   - Can show a message saying 'No chicken detected!' if nothing seen by YOLO yet.
@@ -230,7 +256,16 @@ class Main():
         # Config for live Azure
         config = o3d.io.AzureKinectSensorConfig()
 
-        viewer = ViewerWithCallback(config, 0, True)
+        # # viewer = ViewerWithCallback(config, 0, True)
+        # # viewer.run()
+
+        # # Create the object for reading from the camera
+        # self.sensor = o3d.io.AzureKinectSensor(config)
+        # device = 0
+        # if not self.sensor.connect(device):
+        #     raise ReuntimeError("Failed to connect to sensor.")
+
+
 
 # DEBUG: Prints debug messages. Remove later.
 def log(inputStr):
@@ -254,7 +289,7 @@ if __name__ == '__main__':
 
     # Initialize Main object to handle the pipeline
     # main = Main(path=TEMP_path, depth=TEMP_depth, mode=0)
-    main = Main(path=TEMP_video, mode=2)
+    main = Main(path=TEMP_video, mode=1)
     # main = Main(mode=2)
 
     # Begin the pipeline
