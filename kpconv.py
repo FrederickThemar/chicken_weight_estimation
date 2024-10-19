@@ -93,6 +93,8 @@ class kpconv():
         # Step 2: Feeding pcd to network
         count = 0
         loop_start = time.time()
+        # TRY THIS:
+        # output = self.net(test_dataset[0], self.config)
         for batch in test_loader:
             loop_end = time.time()
             loop_time = loop_end - loop_start
