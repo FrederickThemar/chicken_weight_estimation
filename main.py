@@ -243,10 +243,10 @@ class Main():
         # print(f'For loop count:   {np.mean(self.kpconv.counts_count)}')
         # print(f'Lens: count {len(self.kpconv.count_times)}, batch {len(self.kpconv.batch_times)}, outputs {len(self.kpconv.output_times)}, loop {len(self.kpconv.loop_times)}')
 
-    # # Callback function. Exit loop in process_live when user hits Esc
-    # def escape_callback(self, vis):
-    #     self.flag_exit = True
-    #     return False
+    # Callback function. Exit loop in process_live when user hits Esc
+    def escape_callback(self, vis):
+        self.flag_exit = True
+        return False
 
     def process_live(self):
         # Idea: Have it show avg error every 10 frames processed
@@ -259,12 +259,44 @@ class Main():
         # # viewer = ViewerWithCallback(config, 0, True)
         # # viewer.run()
 
-        # # Create the object for reading from the camera
-        # self.sensor = o3d.io.AzureKinectSensor(config)
-        # device = 0
-        # if not self.sensor.connect(device):
-        #     raise ReuntimeError("Failed to connect to sensor.")
+        # Create the object for reading from the camera
+        self.sensor = o3d.io.AzureKinectSensor(config)
+        device = 0
+        if not self.sensor.connect(device):
+            raise RuntimeError("Failed to connect to sensor.")
 
+        self.flag_exit = False
+        outputs = []
+        start = time.time()
+        while not self.flag_exit:
+
+            rgbd = self.sensor.capture_frame()
+            if rgbd is None:
+                continue
+
+            output, overlay = self.handle_rgbd(rgbd, count)
+
+            if output is None:
+                cv2.imshow('frame', overlay)
+                cv2.waitKey(10)
+            
+                count+=1
+                continue
+
+            # Display the visualization frame
+            cv2.imshow('frame', overlay)
+            cv2.waitKey(10)
+
+            outputs.append(output)
+
+            # Want loop to end after 60 seconds
+            end = time.time()
+            duration = end - start
+            if duration > 60:
+                self.flag_exit = True
+        
+        # Close cv2 window
+        cv2.destroyAllWindows()
 
 
 # DEBUG: Prints debug messages. Remove later.
@@ -281,11 +313,17 @@ if __name__ == '__main__':
     # TEMP_path = '/mnt/khoavoho/datasets/chicken_weight_dataset/jzbumgar/Depth/Spring2024/20240326/chicken3/color/000100.jpg'
     # TEMP_depth = '/mnt/khoavoho/datasets/chicken_weight_dataset/jzbumgar/Depth/Spring2024/20240326/chicken3/depth/000100.png'
     # Acceptable mask
-    # TEMP_path = '/mnt/khoavoho/datasets/chicken_weight_dataset/jzbumgar/Depth/Spring2024/20240409/chicken20/color/000098.jpg'
-    # TEMP_depth = '/mnt/khoavoho/datasets/chicken_weight_dataset/jzbumgar/Depth/Spring2024/20240409/chicken20/depth/000098.png'
 
-    TEMP_video = '/mnt/khoavoho/datasets/chicken_weight_dataset/jzbumgar/Spring2024/20240409/chicken_16.mkv'
+    # Used for mode=0, process frame
+    TEMP_path = '/mnt/khoavoho/datasets/chicken_weight_dataset/jzbumgar/Depth/Spring2024/20240409/chicken20/color/000098.jpg'
+    TEMP_depth = '/mnt/khoavoho/datasets/chicken_weight_dataset/jzbumgar/Depth/Spring2024/20240409/chicken20/depth/000098.png'
+
+    # Used for mode=1, process video
+    # TEMP_video = '/mnt/khoavoho/datasets/chicken_weight_dataset/jzbumgar/Spring2024/20240409/chicken_16.mkv'
     # TEMP_video = '/mnt/khoavoho/datasets/chicken_weight_dataset/jzbumgar/Spring2024/20240306/chicken_16.mkv'
+
+    # Used with mode=1, has multiple chickens
+    TEMP_video = "/home/jzbumgar/datasets/Summer_videos/20240617_chicken03.mkv"
 
     # Initialize Main object to handle the pipeline
     # main = Main(path=TEMP_path, depth=TEMP_depth, mode=0)

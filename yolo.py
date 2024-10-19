@@ -12,7 +12,8 @@ class yolo():
     def __init__(self):
         print("Initializing YOLO model... ", end="", flush=True)
 
-        self.modelName = "20240615_med15"
+        # self.modelName = "20240615_med15" # Old model, can only segment one chicken.
+        self.modelName = "20241013_mult2"
 
         # Check output path
         self.maskOutput = "./outputMask/"
@@ -39,7 +40,8 @@ class yolo():
         # Log start time of function
         start = time.time()
 
-        results = self.model(color, conf=0.80, verbose=False)
+        # results = self.model(color, conf=0.80, verbose=False)
+        results = self.model.track(color, conf=0.80, verbose=False, persist=True, tracker="YOLO/bytetrack.yaml")
 
         success  = False
         isolated = None
@@ -64,10 +66,10 @@ class yolo():
             b_mask = np.zeros(img.shape[:2], np.uint8) # Blank image
 
             # Get each mask on image
-            labels = []
+            # labels = [] NOT USED
             for ci, c in enumerate(result):
                 label = c.names[c.boxes.cls.tolist().pop()]
-                labels.append(label)
+                # labels.append(label)
 
                 # Create contour mask
                 contour = c.masks.xy.pop().astype(np.int32).reshape(-1, 1, 2)
