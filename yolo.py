@@ -31,7 +31,7 @@ class yolo():
         # Used when drawing colored masks onto overlay frame
         self.alpha = 0.3
         self.beta = 1 - self.alpha
-        self.colors = [(255,255,255)]
+        self.colors = [(0,0,255)]
 
         # DEBUG: Used for tracking how long yolo takes to process an image
         self.times = []
@@ -78,7 +78,7 @@ class yolo():
 
                 # Create contour mask
                 contour = c.masks.xy.pop().astype(np.int32).reshape(-1, 1, 2)
-                _ = cv2.drawContours(isolated, [contour], -1, (0,0,255), cv2.FILLED)
+                _ = cv2.drawContours(isolated, [contour], -1, self.colors[0], cv2.FILLED)
 
             # Draw part mask covers onto blank image
             # mask3ch = cv2.cvtColor(isolated, cv2.COLOR_GRAY2BGR)
