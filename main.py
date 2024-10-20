@@ -30,7 +30,7 @@ class Main():
         self.init_path = path
         self.depth_path = depth
 
-        # If not using live-video mode, need to check that path to video or color frame.
+        # If not using live-video mode, need to check that path to video or rgb frame.
         if self.mode != 2:
             if self.init_path == None:
                 print("ERROR: filepath empty.")
@@ -66,9 +66,9 @@ class Main():
 
     # Estimates weight of an individual frame
     def process_frame(self):
-        # Store color frame
+        # Store rgb frame
         framepath = self.init_path
-        color = cv2.imread(framepath)
+        rgb = cv2.imread(framepath)
 
         # Make sure depth file provided
         if self.depth_path == None:
@@ -81,12 +81,12 @@ class Main():
         # rgb_im = o3d.io.read_image(self.color_path)
 
         # Mask frame.
-        success, mask, _ = self.yolo.mask_frame(color, self.save)
+        success, mask, _ = self.yolo.mask_frame(rgb, self.save)
         if not success:
             print("ERROR: No chicken detected in frame.")
             exit(1)
         
-        pcd = self.pcd.pcd_frame(color, depth, mask, self.save)
+        pcd = self.pcd.pcd_frame(rgb, depth, mask, self.save)
         if pcd == None:
             print("\nERROR: The mask for this frame falls outside the acceptable boundaries for the model. Try a different frame.")
             exit(1)
@@ -99,58 +99,58 @@ class Main():
 
     # Runs a given RGBD frame through the pipeline.
     def handle_rgbd(self, rgbd, count):
-        # Store the color and depth frames
-        # color = rgbd.color
+        # Store the rgb and depth frames
+        # rgb = rgbd.rgb
         depth = rgbd.depth
         
         # This might not be needed!
         DEBUG_depthCV2 = np.asarray(depth)
         DEBUG_depthCV2 = cv2.cvtColor(DEBUG_depthCV2, cv2.COLOR_RGB2BGR)
-        color = np.asarray(rgbd.color)
-        color = cv2.cvtColor(color, cv2.COLOR_RGB2BGR)
+        rgb = np.asarray(rgbd.color)
+        rgb = cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR)
         # print(DEBUG_depthCV2.dtype)
         # cv2.imwrite('img.png',DEBUG_depthCV2)
         # o3d.io.write_image('img2.png', depth)
         # cv2.waitKey(0)
 
-        success, mask, overlay = self.yolo.mask_frame(color, self.save)
+        success, mask, overlay = self.yolo.mask_frame(rgb, self.save)
         if not success:
             # Write frame count
-            color = cv2.rectangle(color, (0, 0), (250, 50), (200,0,0), -1)
-            color = cv2.putText(
-                color,
+            rgb = cv2.rectangle(rgb, (0, 0), (250, 50), (200,0,0), -1)
+            rgb = cv2.putText(
+                rgb,
                 f'Frame: {count+1}',
                 (15, 35),
                 cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
-            # cv2.imshow('frame', color)
+            # cv2.imshow('frame', rgb)
             # cv2.waitKey(10)
             
-            return None, color
+            return None, rgb
             # count+=1
             # continue
             
 
-        pcd = self.pcd.pcd_frame(color, depth, mask, self.save)
-        
+        pcd = self.pcd.pcd_frame(rgb, depth, mask, self.save)
+
         # Write frame count
-        color = cv2.rectangle(color, (0, 0), (250, 50), (200,0,0), -1)
-        color = cv2.putText(
-            color,
+        rgb = cv2.rectangle(rgb, (0, 0), (250, 50), (200,0,0), -1)
+        rgb = cv2.putText(
+            rgb,
             f'Frame: {count+1}',
             (15, 35),
             cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
-            # cv2.imshow('frame', color)
+            # cv2.imshow('frame', rgb)
             # cv2.waitKey(10)
         
         if pcd == None:
             # No mask detected, write "N/A"
-            color = cv2.rectangle(color, (0, 50), (250, 100), (0,200,0), -1)
-            color = cv2.putText(
-                color,
+            rgb = cv2.rectangle(rgb, (0, 50), (250, 100), (0,200,0), -1)
+            rgb = cv2.putText(
+                rgb,
                 'Output: N/A',
                 (15, 85),
                 cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
-            return None, color
+            return None, rgb
             # count+=1
             # continue
 
@@ -164,9 +164,9 @@ class Main():
         #     f'Frame: {count+1}',
         #     (15, 35),
         #     cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
-        color = cv2.rectangle(color, (0, 50), (250, 100), (0,200,0), -1)
-        color = cv2.putText(
-            color,
+        rgb = cv2.rectangle(rgb, (0, 50), (250, 100), (0,200,0), -1)
+        rgb = cv2.putText(
+            rgb,
             'Output: %.2f' % round(output[0][0],2),
             (15, 85),
             cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
@@ -176,7 +176,7 @@ class Main():
         # cv2.imshow('frame', overlay)
         # cv2.waitKey(10)
 
-        return output, color
+        return output, rgb
 
         # count+=1
         # break
@@ -187,7 +187,7 @@ class Main():
         # Maybe use process_frame for this? 
         #   - Can have pframe return estimate and append to list
         #   - Save the frames separately, then have a list storing the paths to each. Give to pframe() 
-        #       - Maybe each item in array can be another JSON, with paths to mask, depth, and color?
+        #       - Maybe each item in array can be another JSON, with paths to mask, depth, and rgb?
         #   - TQDM can run based on number of files in frame folder
         
         # Log start time of function
