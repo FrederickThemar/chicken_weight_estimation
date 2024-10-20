@@ -131,17 +131,25 @@ class Main():
             
 
         pcd = self.pcd.pcd_frame(color, depth, mask, self.save)
-        if pcd == None:
-            # Write frame count
-            color = cv2.rectangle(color, (0, 0), (250, 50), (200,0,0), -1)
-            color = cv2.putText(
-                color,
-                f'Frame: {count+1}',
-                (15, 35),
-                cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+        
+        # Write frame count
+        color = cv2.rectangle(color, (0, 0), (250, 50), (200,0,0), -1)
+        color = cv2.putText(
+            color,
+            f'Frame: {count+1}',
+            (15, 35),
+            cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
             # cv2.imshow('frame', color)
             # cv2.waitKey(10)
-            
+        
+        if pcd == None:
+            # No mask detected, write "N/A"
+            color = cv2.rectangle(color, (0, 50), (250, 100), (0,200,0), -1)
+            color = cv2.putText(
+                color,
+                'Output: N/A',
+                (15, 85),
+                cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
             return None, color
             # count+=1
             # continue
@@ -150,15 +158,15 @@ class Main():
         # outputs.append(output)
         
         # Write output on visualization frame
-        overlay = cv2.rectangle(overlay, (0, 0), (250, 50), (200,0,0), -1)
-        overlay = cv2.putText(
-            overlay,
-            f'Frame: {count+1}',
-            (15, 35),
-            cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
-        overlay = cv2.rectangle(overlay, (0, 50), (250, 100), (0,200,0), -1)
-        overlay = cv2.putText(
-            overlay,
+        # overlay = cv2.rectangle(overlay, (0, 0), (250, 50), (200,0,0), -1)
+        # overlay = cv2.putText(
+        #     overlay,
+        #     f'Frame: {count+1}',
+        #     (15, 35),
+        #     cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+        color = cv2.rectangle(color, (0, 50), (250, 100), (0,200,0), -1)
+        color = cv2.putText(
+            color,
             'Output: %.2f' % round(output[0][0],2),
             (15, 85),
             cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
@@ -168,7 +176,7 @@ class Main():
         # cv2.imshow('frame', overlay)
         # cv2.waitKey(10)
 
-        return output, overlay
+        return output, color
 
         # count+=1
         # break
@@ -319,11 +327,11 @@ if __name__ == '__main__':
     TEMP_depth = '/mnt/khoavoho/datasets/chicken_weight_dataset/jzbumgar/Depth/Spring2024/20240409/chicken20/depth/000098.png'
 
     # Used for mode=1, process video
-    # TEMP_video = '/mnt/khoavoho/datasets/chicken_weight_dataset/jzbumgar/Spring2024/20240409/chicken_16.mkv'
+    TEMP_video = '/mnt/khoavoho/datasets/chicken_weight_dataset/jzbumgar/Spring2024/20240409/chicken_16.mkv'
     # TEMP_video = '/mnt/khoavoho/datasets/chicken_weight_dataset/jzbumgar/Spring2024/20240306/chicken_16.mkv'
 
     # Used with mode=1, has multiple chickens
-    TEMP_video = "/home/jzbumgar/datasets/Summer_videos/20240617_chicken03.mkv"
+    # TEMP_video = "/home/jzbumgar/datasets/Summer_videos/20240617_chicken03.mkv"
 
     # Initialize Main object to handle the pipeline
     # main = Main(path=TEMP_path, depth=TEMP_depth, mode=0)
