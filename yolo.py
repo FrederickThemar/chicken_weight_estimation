@@ -28,12 +28,17 @@ class yolo():
         # Where most recent mask for project is saved
         self.savedMask = None
 
+        # Used when drawing colored masks onto overlay frame
+        self.alpha = 0.3
+        self.beta = 1 - self.alpha
+        self.colors = [(255,255,255)]
+
         # DEBUG: Used for tracking how long yolo takes to process an image
         self.times = []
 
         print("Done!")
 
-    def mask_frame(self, color, save):
+    def mask_frame(self, rgb, save):
         # print("\nMasking frame... ")
         # self.frame_path = path
 
@@ -41,7 +46,7 @@ class yolo():
         start = time.time()
 
         # results = self.model(color, conf=0.80, verbose=False)
-        results = self.model.track(color, conf=0.80, verbose=False, persist=True, tracker="YOLO/bytetrack.yaml")
+        results = self.model.track(rgb, conf=0.80, verbose=False, persist=True, tracker="YOLO/bytetrack.yaml")
 
         success  = False
         isolated = None
@@ -63,7 +68,7 @@ class yolo():
 
             # Isolate masks on a blank image
             img = np.copy(result.orig_img) # Original color frame
-            b_mask = np.zeros(img.shape[:2], np.uint8) # Blank image
+            isolated = np.zeros(img.shape[:3], np.uint8) # Blank image to draw masks onto
 
             # Get each mask on image
             # labels = [] NOT USED
@@ -73,11 +78,11 @@ class yolo():
 
                 # Create contour mask
                 contour = c.masks.xy.pop().astype(np.int32).reshape(-1, 1, 2)
-                _ = cv2.drawContours(b_mask, [contour], -1, (255,255,255), cv2.FILLED)
+                _ = cv2.drawContours(isolated, [contour], -1, (0,0,255), cv2.FILLED)
 
             # Draw part mask covers onto blank image
-            mask3ch = cv2.cvtColor(b_mask, cv2.COLOR_GRAY2BGR)
-            isolated = cv2.bitwise_and(mask3ch, img)
+            # mask3ch = cv2.cvtColor(isolated, cv2.COLOR_GRAY2BGR)
+            # isolated = cv2.bitwise_and(mask3ch, img)
 
             # Save isolated mask into temp folder
             if save:
@@ -87,7 +92,14 @@ class yolo():
             self.savedMask = isolated
             # overlay = np.asarray(result.cpu().numpy())
             # overlay = None
-            overlay = result.plot()
+            # overlay = result.plot()
+
+            # Draw mask onto overlay frame
+            overlay = img.copy()
+            mask_location = isolated.astype(bool)
+            # print(overlay)
+            # print()
+            overlay[mask_location] = cv2.addWeighted(img, self.alpha, isolated, self.beta, 0.0)[mask_location]
 
         if success is not False:
             # Save process time

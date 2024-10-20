@@ -104,8 +104,8 @@ class Main():
         depth = rgbd.depth
         
         # This might not be needed!
-        DEBUG_depthCV2 = np.asarray(depth)
-        DEBUG_depthCV2 = cv2.cvtColor(DEBUG_depthCV2, cv2.COLOR_RGB2BGR)
+        # DEBUG_depthCV2 = np.asarray(depth)
+        # DEBUG_depthCV2 = cv2.cvtColor(DEBUG_depthCV2, cv2.COLOR_RGB2BGR)
         rgb = np.asarray(rgbd.color)
         rgb = cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR)
         # print(DEBUG_depthCV2.dtype)
@@ -133,16 +133,17 @@ class Main():
         pcd = self.pcd.pcd_frame(rgb, depth, mask, self.save)
 
         # Write frame count
-        rgb = cv2.rectangle(rgb, (0, 0), (250, 50), (200,0,0), -1)
-        rgb = cv2.putText(
-            rgb,
-            f'Frame: {count+1}',
-            (15, 35),
-            cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
             # cv2.imshow('frame', rgb)
             # cv2.waitKey(10)
         
         if pcd == None:
+            rgb = cv2.rectangle(rgb, (0, 0), (250, 50), (200,0,0), -1)
+            rgb = cv2.putText(
+                rgb,
+                f'Frame: {count+1}',
+                (15, 35),
+                cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+                
             # No mask detected, write "N/A"
             rgb = cv2.rectangle(rgb, (0, 50), (250, 100), (0,200,0), -1)
             rgb = cv2.putText(
@@ -158,15 +159,15 @@ class Main():
         # outputs.append(output)
         
         # Write output on visualization frame
-        # overlay = cv2.rectangle(overlay, (0, 0), (250, 50), (200,0,0), -1)
-        # overlay = cv2.putText(
-        #     overlay,
-        #     f'Frame: {count+1}',
-        #     (15, 35),
-        #     cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
-        rgb = cv2.rectangle(rgb, (0, 50), (250, 100), (0,200,0), -1)
-        rgb = cv2.putText(
-            rgb,
+        overlay = cv2.rectangle(overlay, (0, 0), (250, 50), (200,0,0), -1)
+        overlay = cv2.putText(
+            overlay,
+            f'Frame: {count+1}',
+            (15, 35),
+            cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+        overlay = cv2.rectangle(overlay, (0, 50), (250, 100), (0,200,0), -1)
+        overlay = cv2.putText(
+            overlay,
             'Output: %.2f' % round(output[0][0],2),
             (15, 85),
             cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
@@ -176,7 +177,7 @@ class Main():
         # cv2.imshow('frame', overlay)
         # cv2.waitKey(10)
 
-        return output, rgb
+        return output, overlay
 
         # count+=1
         # break
