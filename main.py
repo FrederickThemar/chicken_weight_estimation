@@ -44,6 +44,13 @@ class Main():
         self.pcd = pcd()
         self.kpconv = kpconv()
 
+        # Used when drawing overlay
+        self.alpha = 0.3
+        self.beta = 1 - self.alpha
+
+        # Used to store a list of the 
+        self.table = {}
+
     # Begins the pipeline based on the mode provided to the object
     def begin(self):
         if self.mode == 0:
@@ -112,8 +119,16 @@ class Main():
         # cv2.imwrite('img.png',DEBUG_depthCV2)
         # o3d.io.write_image('img2.png', depth)
         # cv2.waitKey(0)
-
-        success, mask, overlay = self.yolo.mask_frame(rgb, self.save)
+        
+        # DEBUG: REMOVE LATER
+        # print(count+1)
+        # success, masks, overlay, ids = self.yolo.mask_frame(rgb, self.save)
+        success, masks, ids = self.yolo.mask_frame(rgb, self.save)
+        # DEBUG:
+        # if len(masks) != len(ids):
+        #     print("ERROR: LENGTHS DON'T MATCH")
+        #     print(count+1)
+        #     print()
         if not success:
             # Write frame count
             rgb = cv2.rectangle(rgb, (0, 0), (250, 50), (200,0,0), -1)
@@ -129,21 +144,23 @@ class Main():
             # count+=1
             # continue
             
-
-        pcd = self.pcd.pcd_frame(rgb, depth, mask, self.save)
+        # contours, _ = cv2.findContours(mask.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        # print(f'Len IDS: \t{len(ids)}')
+        # print(f'Len con: \t')
+        # print(count+1)
+        pcds, accep_masks, pcd_ids = self.pcd.pcd_frame(rgb, depth, masks, ids, self.save)
 
         # Write frame count
             # cv2.imshow('frame', rgb)
             # cv2.waitKey(10)
-        
-        if pcd == None:
+        if pcds == []:
             rgb = cv2.rectangle(rgb, (0, 0), (250, 50), (200,0,0), -1)
             rgb = cv2.putText(
                 rgb,
                 f'Frame: {count+1}',
                 (15, 35),
                 cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
-                
+
             # No mask detected, write "N/A"
             rgb = cv2.rectangle(rgb, (0, 50), (250, 100), (0,200,0), -1)
             rgb = cv2.putText(
@@ -155,28 +172,59 @@ class Main():
             # count+=1
             # continue
 
-        output = self.kpconv.estimate_frame(pcd)
+        # print("MADE IT TO KPCONV")
+        # if len(pcds) > 1:
+        #     print(count+1)
+        #     print(len(pcds))
+        #     print()
+        # print()
+        outputs, accep_ids = self.kpconv.estimate_frame(pcds, pcd_ids)
+        # print(len(outputs[0]))
         # outputs.append(output)
         
-        # Write output on visualization frame
+        # Draw acceptable masks onto image
+        overlay = rgb.copy()
+        for mask in accep_masks:
+            mask_location = mask.astype(bool)
+            overlay[mask_location] = cv2.addWeighted(rgb, self.alpha, mask, self.beta, 0.0)[mask_location]
+
+        # Write info and weights to frame
         overlay = cv2.rectangle(overlay, (0, 0), (250, 50), (200,0,0), -1)
         overlay = cv2.putText(
             overlay,
             f'Frame: {count+1}',
             (15, 35),
             cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
-        overlay = cv2.rectangle(overlay, (0, 50), (250, 100), (0,200,0), -1)
-        overlay = cv2.putText(
-            overlay,
-            'Output: %.2f' % round(output[0][0],2),
-            (15, 85),
-            cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+        for output in outputs:
+            # Write output on visualization frame
+            overlay = cv2.rectangle(overlay, (0, 50), (250, 100), (0,200,0), -1)
+            overlay = cv2.putText(
+                overlay,
+                'Output: %.2f' % round(output[0][0],2),
+                (15, 85),
+                cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
 
+        # if len(outputs) > 1:
+        #     print(count+1)
+        #     for i in range(len(accep_ids)):
+        #         print(f'ID: \t{accep_ids[i]}')
+        #         print(f'Wei:\t{outputs[i]}')
+        #     print(f'IDs: \t{ids}')
+        #     print()
+
+        # Add info to table
+        for i in range(len(accep_ids)):
+            # Initialize ID in table if not already there
+            if accep_ids[i] not in self.table:
+                self.table[accep_ids[i]] = []
+            
+            # Add weight to corresponding ID array
+            self.table[accep_ids[i]].append(outputs[i][0][0])
 
         # # Display the visualization frame
         # cv2.imshow('frame', overlay)
         # cv2.waitKey(10)
-
+        
         return output, overlay
 
         # count+=1
@@ -226,6 +274,9 @@ class Main():
 
             outputs.append(output)
             count+=1
+            # DEBUG: REMOVE LATER
+            # if count > 60:
+            #     break
             
         # Close the video
         reader.close()
@@ -251,6 +302,9 @@ class Main():
         # print(f'For loop len:     {np.mean(self.kpconv.counts_len)}')
         # print(f'For loop count:   {np.mean(self.kpconv.counts_count)}')
         # print(f'Lens: count {len(self.kpconv.count_times)}, batch {len(self.kpconv.batch_times)}, outputs {len(self.kpconv.output_times)}, loop {len(self.kpconv.loop_times)}')
+
+        # DEBUG: print table
+        print(self.table)
 
     # Callback function. Exit loop in process_live when user hits Esc
     def escape_callback(self, vis):
@@ -333,6 +387,7 @@ if __name__ == '__main__':
 
     # Used with mode=1, has multiple chickens
     # TEMP_video = "/home/jzbumgar/datasets/Summer_videos/20240617_chicken03.mkv"
+    # TEMP_video = "/home/jzbumgar/datasets/Summer_videos/20240619_chicken03.mkv"
 
     # Initialize Main object to handle the pipeline
     # main = Main(path=TEMP_path, depth=TEMP_depth, mode=0)

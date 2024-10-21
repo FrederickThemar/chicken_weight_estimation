@@ -28,10 +28,8 @@ class yolo():
         # Where most recent mask for project is saved
         self.savedMask = None
 
-        # Used when drawing colored masks onto overlay frame
-        self.alpha = 0.3
-        self.beta = 1 - self.alpha
-        self.colors = [(0,0,255)]
+        # Used when drawing colored masks onto isolated frame
+        self.colors = [(0,255,0),(0,0,255),(255,0,0),(255,255,0),(255,0,255),(0,255,255),(255,255,255),(255,127,64),(127,255,64),(127,64,255)]
 
         # DEBUG: Used for tracking how long yolo takes to process an image
         self.times = []
@@ -51,6 +49,8 @@ class yolo():
         success  = False
         isolated = None
         overlay  = None
+        IDs      = []
+        masks    = []
         for result in results:
             mask = result.masks
             if mask is None:
@@ -68,17 +68,32 @@ class yolo():
 
             # Isolate masks on a blank image
             img = np.copy(result.orig_img) # Original color frame
-            isolated = np.zeros(img.shape[:3], np.uint8) # Blank image to draw masks onto
 
             # Get each mask on image
             # labels = [] NOT USED
             for ci, c in enumerate(result):
-                label = c.names[c.boxes.cls.tolist().pop()]
+                isolated = np.zeros(img.shape[:3], np.uint8) # Blank image to draw masks onto
+                # label = c.names[c.boxes.cls.tolist().pop()]
                 # labels.append(label)
 
+                # Check if the tracking failed. If so, discard mask.
+                if c.boxes.id is None:
+                    continue
+
+                # Get the ID of the object in the result
+                obj_id = int(c.boxes.id[0]) % len(self.colors)
+                IDs.append(obj_id)
+                # if obj_id == 0:
+                #     print(int(c.boxes.id[0]))
+
+                # DEBUG: REMOVE LATER
+                # print(c.masks.conf)
                 # Create contour mask
                 contour = c.masks.xy.pop().astype(np.int32).reshape(-1, 1, 2)
-                _ = cv2.drawContours(isolated, [contour], -1, self.colors[0], cv2.FILLED)
+                _ = cv2.drawContours(isolated, [contour], -1, self.colors[obj_id-1], cv2.FILLED)
+
+                # Add mask to list
+                masks.append(isolated)
 
             # Draw part mask covers onto blank image
             # mask3ch = cv2.cvtColor(isolated, cv2.COLOR_GRAY2BGR)
@@ -89,17 +104,17 @@ class yolo():
                 maskOutputDir = f'{self.maskOutput}/{origEnd}.png'
                 cv2.imwrite(maskOutputDir, isolated)
 
-            self.savedMask = isolated
+            # self.savedMask = isolated
             # overlay = np.asarray(result.cpu().numpy())
             # overlay = None
             # overlay = result.plot()
 
             # Draw mask onto overlay frame
-            overlay = img.copy()
+            # overlay = img.copy()
             mask_location = isolated.astype(bool)
             # print(overlay)
             # print()
-            overlay[mask_location] = cv2.addWeighted(img, self.alpha, isolated, self.beta, 0.0)[mask_location]
+            # overlay[mask_location] = cv2.addWeighted(img, self.alpha, isolated, self.beta, 0.0)[mask_location]
 
         if success is not False:
             # Save process time
@@ -107,7 +122,8 @@ class yolo():
             duration = (end - start)
             self.times.append(duration)
 
-        return success, isolated, overlay
+        # return success, masks, overlay, IDs
+        return success, masks, IDs
 
     def mask_video(self, path):
         self.video_path = path

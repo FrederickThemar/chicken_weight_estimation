@@ -37,7 +37,7 @@ class pcd():
 
         print("Done!")
 
-    def pcd_frame(self, color, depth, mask, save):
+    def pcd_frame(self, color, depth, masks, ids, save):
         # self.color_path = colorPath
         # self.depth_path = depthPath
         # self.color = color
@@ -48,46 +48,81 @@ class pcd():
         # Log start time of function
         start = time.time()
 
-        self.mask = mask
+        pcds = []
+        accep_masks = []
+        accep_ids   = []
+
+        # Check that any masks have been provided
+        if len(masks) == 0:
+            return pcds, accep_masks, accep_ids
+
+        # self.mask = masks[0]
 
         # Create output filepaths
         # origEnd = self.color_path.split('/')[-1].split('.')[0]
         # pcdPath = f'{self.outputPath}/pcd.ply'
-        
-        accep_mask = self.testMask(self.mask, self.defaultBox)
-        if not accep_mask:
-            # print("\nERROR: The mask for this frame falls outside the acceptable boundaries for the model. Try a different frame.")
-            # exit(1)
-            return None
+        for i in range(len(masks)):
+            curr_mask = masks[i]
+            accep_mask = self.testMask(curr_mask, self.defaultBox)
+            if not accep_mask:
+                # print("\nERROR: The mask for this frame falls outside the acceptable boundaries for the model. Try a different frame.")
+                # exit(1)
+                # print("MASK NOT ACCEP")
+                continue
 
-        # rgb = plt.imread(self.color_path) / 255
-        # rgb = self.color / 255
-        # depth = cv2.imread(self.depth_path, flags=cv2.IMREAD_ANYCOLOR | cv2.IMREAD_ANYDEPTH)
+            # Store mask
+            accep_masks.append(curr_mask)
+            accep_ids.append(ids[i])
 
-        # frame = cv2.imread(self.mask, flags=cv2.IMREAD_ANYCOLOR | cv2.IMREAD_ANYDEPTH)
-        # Convert depth to openCV image to work with mask
-        temp_depth = np.asarray(depth)
+            # rgb = plt.imread(self.color_path) / 255
+            # rgb = self.color / 255
+            # depth = cv2.imread(self.depth_path, flags=cv2.IMREAD_ANYCOLOR | cv2.IMREAD_ANYDEPTH)
 
-        frame = self.mask
-        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        mask = np.zeros_like(frame)
-        mask[frame > 0] = 1
-        mask[temp_depth < self.d_lo] = 0
-        mask[temp_depth > self.d_hi] = 0
+            # frame = cv2.imread(self.mask, flags=cv2.IMREAD_ANYCOLOR | cv2.IMREAD_ANYDEPTH)
+            # Convert depth to openCV image to work with mask
+            temp_depth = np.asarray(depth)
 
-        temp_depth[mask == 0] = 0
+            frame = curr_mask
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            mask = np.zeros_like(frame)
+            DEBUG_temp = np.zeros_like(temp_depth)
+            mask[frame > 0] = 1
+            mask[temp_depth < self.d_lo] = 0
+            mask[temp_depth > self.d_hi] = 0
 
-        # Create pointcloud using depthmask
-        # rgb_im = o3d.io.read_image(self.color_path)
-        rgb_im = o3d.geometry.Image(color)
-        # depth_im = o3d.geometry.Image(depth)
-        depth_im = depth
-        rgbd_im = o3d.geometry.RGBDImage.create_from_color_and_depth(rgb_im, depth_im, convert_rgb_to_intensity=False)
-        pcd = o3d.geometry.PointCloud.create_from_rgbd_image(
-            rgbd_im,
-            self.cam
-        )
-        pcd.translate(-pcd.get_center())
+            # Stop here if this happens
+            # if mask.all() == DEBUG_temp.all():
+            #     print("MASK EMPTY")
+                # continue
+
+            temp_depth[mask == 0] = 0
+
+            # If depth is empty, the PCD will be as well. Thus, skip the mask
+            if (temp_depth == DEBUG_temp).all():
+                continue
+
+            # Create pointcloud using depthmask
+            # rgb_im = o3d.io.read_image(self.color_path)
+            rgb_im = o3d.geometry.Image(color)
+            # depth_im = o3d.geometry.Image(depth)
+            depth_im = o3d.geometry.Image(temp_depth)
+            rgbd_im = o3d.geometry.RGBDImage.create_from_color_and_depth(rgb_im, depth_im, convert_rgb_to_intensity=False)
+            pcd = o3d.geometry.PointCloud.create_from_rgbd_image(
+                rgbd_im,
+                self.cam
+            )
+            pcd.translate(-pcd.get_center())
+            # if len(np.asarray(pcd.points).astype(np.float32)) == 0:
+            #     cv2.imshow('frame', curr_mask)
+            #     cv2.waitKey(0)
+            # print("APPENDING PCD")
+
+            if len(np.asarray(pcd.points).astype(np.float32)) < 10:
+                continue
+
+            pcds.append(pcd)
+            # print(len(np.asarray(pcd.points).astype(np.float32)))
+
         # o3d.io.write_point_cloud(pcdPath, pcd)
 
         # Save process time
@@ -95,7 +130,7 @@ class pcd():
         duration = (end - start)
         self.times.append(duration)
 
-        return pcd
+        return pcds, accep_masks, accep_ids
         
 
     def pcd_video(self):
