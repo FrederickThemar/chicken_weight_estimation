@@ -82,7 +82,7 @@ class yolo():
                     continue
 
                 # Get the ID of the object in the result
-                obj_id = int(c.boxes.id[0]) % len(self.colors)
+                obj_id = int(c.boxes.id[0])
                 IDs.append(obj_id)
                 box = (c.boxes.xyxy).tolist()[0]
                 boxes.append(box)
@@ -93,7 +93,7 @@ class yolo():
                 # print(c.masks.conf)
                 # Create contour mask
                 contour = c.masks.xy.pop().astype(np.int32).reshape(-1, 1, 2)
-                _ = cv2.drawContours(isolated, [contour], -1, self.colors[obj_id-1], cv2.FILLED)
+                _ = cv2.drawContours(isolated, [contour], -1, self.colors[(obj_id % len(self.colors))-1], cv2.FILLED)
 
                 # Add mask to list
                 masks.append(isolated)

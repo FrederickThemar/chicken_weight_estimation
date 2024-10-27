@@ -124,7 +124,13 @@ class Main():
         # print(count+1)
         # success, masks, overlay, ids = self.yolo.mask_frame(rgb, self.save)
         success, masks, ids, boxes = self.yolo.mask_frame(rgb, self.save)
-        indices = range(len(ids))
+        
+        if len(masks) != len(ids) or len(masks) != len(boxes):
+            print("ERROR: LENGTHS DON'T MATCH")
+            print(len(masks))
+            print(len(ids))
+            print(len(boxes))
+            exit(1)
         # DEBUG:
         # if len(masks) != len(ids):
         #     print("ERROR: LENGTHS DON'T MATCH")
@@ -150,7 +156,8 @@ class Main():
         # print(f'Len con: \t')
         # print(count+1)
         pcds, accep_masks, pcd_idxs = self.pcd.pcd_frame(rgb, depth, masks, self.save)
-
+        # print(ids)
+        # print(pcd_idxs)
         # Write frame count
             # cv2.imshow('frame', rgb)
             # cv2.waitKey(10)
@@ -183,30 +190,36 @@ class Main():
         # print(len(outputs[0]))
         # outputs.append(output)
         
-        # Draw acceptable masks onto image
+        # Draw acceptable masks and data onto image
         overlay = rgb.copy()
+        # print(accep_idxs)
         for k in range(len(accep_idxs)):
             # Store index
             i = accep_idxs[k]
+
             # Draw mask
             mask_location = masks[i].astype(bool)
             overlay[mask_location] = cv2.addWeighted(rgb, self.alpha, masks[i], self.beta, 0.0)[mask_location]
 
             # Draw box and write output inside 
             # left=0, top, right, bottom
+            # Get coordinates
             box = boxes[i]
-            top_left = (int(box[2]), int(box[1])+25)
-            bot_righ = (int(box[2])+65, int(box[1]))
-            # print(top_left)
-            # print(bot_righ)
-            overlay = cv2.rectangle(overlay, top_left, bot_righ, (0,0,0), -1)
+            top_left = (int(box[0]), int(box[1])-35)
+            bot_righ = (int(box[0])+115, int(box[1]))
+            # Get color
+            color_idx = ids[i] % len(self.yolo.colors)
+            color = self.yolo.colors[color_idx-1]
+            # Draw the boxes and text
+            overlay = cv2.rectangle(overlay, (int(box[0]), int(box[1])), (int(box[2]), int(box[3])), color, 2)
+            overlay = cv2.rectangle(overlay, top_left, bot_righ, color, -1)
             overlay = cv2.putText(
                 overlay,                                # Base img
-                "{:0.2f}".format(outputs[k][0][0]),     # Text
-                (int(box[2])+5, int(box[1])+20),        # Org, ie bottom left
+                "{:0.2f} kg".format(outputs[k][0][0]),  # Text
+                (int(box[0])+5, int(box[1])-10),        # Org, ie bottom left
                 cv2.FONT_HERSHEY_SIMPLEX,               # Font
-                0.80,                                   # Font Scale
-                (255,255,255),                          # Color
+                0.85,                                   # Font Scale
+                (0,0,0),                          # Color
                 1,                                      # Thickness
                 cv2.LINE_AA
             )
