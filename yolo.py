@@ -50,6 +50,7 @@ class yolo():
         isolated = None
         overlay  = None
         IDs      = []
+        boxes    = []
         masks    = []
         for result in results:
             mask = result.masks
@@ -83,6 +84,8 @@ class yolo():
                 # Get the ID of the object in the result
                 obj_id = int(c.boxes.id[0]) % len(self.colors)
                 IDs.append(obj_id)
+                box = (c.boxes.xyxy).tolist()[0]
+                boxes.append(box)
                 # if obj_id == 0:
                 #     print(int(c.boxes.id[0]))
 
@@ -123,7 +126,7 @@ class yolo():
             self.times.append(duration)
 
         # return success, masks, overlay, IDs
-        return success, masks, IDs
+        return success, masks, IDs, boxes
 
     def mask_video(self, path):
         self.video_path = path

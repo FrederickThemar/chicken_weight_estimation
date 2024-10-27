@@ -123,7 +123,8 @@ class Main():
         # DEBUG: REMOVE LATER
         # print(count+1)
         # success, masks, overlay, ids = self.yolo.mask_frame(rgb, self.save)
-        success, masks, ids = self.yolo.mask_frame(rgb, self.save)
+        success, masks, ids, boxes = self.yolo.mask_frame(rgb, self.save)
+        indices = range(len(ids))
         # DEBUG:
         # if len(masks) != len(ids):
         #     print("ERROR: LENGTHS DON'T MATCH")
@@ -148,7 +149,7 @@ class Main():
         # print(f'Len IDS: \t{len(ids)}')
         # print(f'Len con: \t')
         # print(count+1)
-        pcds, accep_masks, pcd_ids = self.pcd.pcd_frame(rgb, depth, masks, ids, self.save)
+        pcds, accep_masks, pcd_idxs = self.pcd.pcd_frame(rgb, depth, masks, self.save)
 
         # Write frame count
             # cv2.imshow('frame', rgb)
@@ -178,15 +179,37 @@ class Main():
         #     print(len(pcds))
         #     print()
         # print()
-        outputs, accep_ids = self.kpconv.estimate_frame(pcds, pcd_ids)
+        outputs, accep_idxs = self.kpconv.estimate_frame(pcds, pcd_idxs)
         # print(len(outputs[0]))
         # outputs.append(output)
         
         # Draw acceptable masks onto image
         overlay = rgb.copy()
-        for mask in accep_masks:
-            mask_location = mask.astype(bool)
-            overlay[mask_location] = cv2.addWeighted(rgb, self.alpha, mask, self.beta, 0.0)[mask_location]
+        for k in range(len(accep_idxs)):
+            # Store index
+            i = accep_idxs[k]
+            # Draw mask
+            mask_location = masks[i].astype(bool)
+            overlay[mask_location] = cv2.addWeighted(rgb, self.alpha, masks[i], self.beta, 0.0)[mask_location]
+
+            # Draw box and write output inside 
+            # left=0, top, right, bottom
+            box = boxes[i]
+            top_left = (int(box[2]), int(box[1])+25)
+            bot_righ = (int(box[2])+65, int(box[1]))
+            # print(top_left)
+            # print(bot_righ)
+            overlay = cv2.rectangle(overlay, top_left, bot_righ, (0,0,0), -1)
+            overlay = cv2.putText(
+                overlay,                                # Base img
+                "{:0.2f}".format(outputs[k][0][0]),     # Text
+                (int(box[2])+5, int(box[1])+20),        # Org, ie bottom left
+                cv2.FONT_HERSHEY_SIMPLEX,               # Font
+                0.80,                                   # Font Scale
+                (255,255,255),                          # Color
+                1,                                      # Thickness
+                cv2.LINE_AA
+            )
 
         # Write info and weights to frame
         overlay = cv2.rectangle(overlay, (0, 0), (250, 50), (200,0,0), -1)
@@ -195,14 +218,14 @@ class Main():
             f'Frame: {count+1}',
             (15, 35),
             cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
-        for output in outputs:
-            # Write output on visualization frame
-            overlay = cv2.rectangle(overlay, (0, 50), (250, 100), (0,200,0), -1)
-            overlay = cv2.putText(
-                overlay,
-                'Output: %.2f' % round(output[0][0],2),
-                (15, 85),
-                cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+        # for output in outputs:
+        #     # Write output on visualization frame
+        #     overlay = cv2.rectangle(overlay, (0, 50), (250, 100), (0,200,0), -1)
+        #     overlay = cv2.putText(
+        #         overlay,
+        #         'Output: %.2f' % round(output[0][0],2),
+        #         (15, 85),
+        #         cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
 
         # if len(outputs) > 1:
         #     print(count+1)
@@ -213,19 +236,23 @@ class Main():
         #     print()
 
         # Add info to table
-        for i in range(len(accep_ids)):
+        # print(len(accep_idxs))
+        # print(len(ids))
+        # print(len(outputs))
+        for i in range(len(accep_idxs)):
+            # print(f'ID: {i}')
             # Initialize ID in table if not already there
-            if accep_ids[i] not in self.table:
-                self.table[accep_ids[i]] = []
+            if ids[accep_idxs[i]] not in self.table:
+                self.table[ids[accep_idxs[i]]] = []
             
             # Add weight to corresponding ID array
-            self.table[accep_ids[i]].append(outputs[i][0][0])
-
+            self.table[ids[accep_idxs[i]]].append(outputs[i][0][0])
+        # print()
         # # Display the visualization frame
         # cv2.imshow('frame', overlay)
         # cv2.waitKey(10)
         
-        return output, overlay
+        return outputs, overlay
 
         # count+=1
         # break
@@ -382,12 +409,13 @@ if __name__ == '__main__':
     TEMP_depth = '/mnt/khoavoho/datasets/chicken_weight_dataset/jzbumgar/Depth/Spring2024/20240409/chicken20/depth/000098.png'
 
     # Used for mode=1, process video
-    TEMP_video = '/mnt/khoavoho/datasets/chicken_weight_dataset/jzbumgar/Spring2024/20240409/chicken_16.mkv'
+    # TEMP_video = '/mnt/khoavoho/datasets/chicken_weight_dataset/jzbumgar/Spring2024/20240409/chicken_16.mkv'
     # TEMP_video = '/mnt/khoavoho/datasets/chicken_weight_dataset/jzbumgar/Spring2024/20240306/chicken_16.mkv'
 
     # Used with mode=1, has multiple chickens
     # TEMP_video = "/home/jzbumgar/datasets/Summer_videos/20240617_chicken03.mkv"
-    # TEMP_video = "/home/jzbumgar/datasets/Summer_videos/20240619_chicken03.mkv"
+    TEMP_video = "/home/jzbumgar/datasets/Summer_videos/20240619_chicken03.mkv"
+    # TEMP_video = "/home/jzbumgar/Downloads/chicken_07(1).mkv"
 
     # Initialize Main object to handle the pipeline
     # main = Main(path=TEMP_path, depth=TEMP_depth, mode=0)

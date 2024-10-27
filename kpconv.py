@@ -74,14 +74,15 @@ class kpconv():
     #     # points = torch.tensor(points)
     #     return points
 
-    def estimate_frame(self, pcds, ids):
+    def estimate_frame(self, pcds, idxs):
         # Log start time of function
         start = time.time()
 
         outputs   = []
-        accep_ids = []
+        accep_idxs = []
         for i in range(len(pcds)):
             pcd = pcds[i]
+
             # Create Dataloader
             test_dataset = ChickenWeightDataset(self.config, pcd, train=False)
             test_sampler = ChickenWeightSampler(test_dataset)
@@ -129,15 +130,17 @@ class kpconv():
 
             output = output.cpu().detach().numpy()
             outputs.append(output)
-            accep_ids.append(ids[i])
+            accep_idxs.append(idxs[i])
 
         # Save process time
         end = time.time()
         duration = (end - start)
         self.times.append(duration)
 
-        # print(outputs)
-        return outputs, accep_ids
+        # print(len(outputs))
+        # if len(pcds) > 1:
+        #     print(len(pcds), len(outputs))
+        return outputs, accep_idxs
 
     def estimate_video(self, pcdVideoPath):
         pcds = [self.read_pcd(pcdPath) for pcdPath in pcdVideoPath]

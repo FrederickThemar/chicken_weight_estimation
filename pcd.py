@@ -37,7 +37,7 @@ class pcd():
 
         print("Done!")
 
-    def pcd_frame(self, color, depth, masks, ids, save):
+    def pcd_frame(self, color, depth, masks, save):
         # self.color_path = colorPath
         # self.depth_path = depthPath
         # self.color = color
@@ -50,11 +50,11 @@ class pcd():
 
         pcds = []
         accep_masks = []
-        accep_ids   = []
+        accep_idxs   = []
 
         # Check that any masks have been provided
         if len(masks) == 0:
-            return pcds, accep_masks, accep_ids
+            return pcds, accep_masks, accep_idxs
 
         # self.mask = masks[0]
 
@@ -69,10 +69,6 @@ class pcd():
                 # exit(1)
                 # print("MASK NOT ACCEP")
                 continue
-
-            # Store mask
-            accep_masks.append(curr_mask)
-            accep_ids.append(ids[i])
 
             # rgb = plt.imread(self.color_path) / 255
             # rgb = self.color / 255
@@ -120,7 +116,10 @@ class pcd():
             if len(np.asarray(pcd.points).astype(np.float32)) < 10:
                 continue
 
+            # Store PCD, mask, and index
             pcds.append(pcd)
+            accep_masks.append(curr_mask)
+            accep_idxs.append(i)
             # print(len(np.asarray(pcd.points).astype(np.float32)))
 
         # o3d.io.write_point_cloud(pcdPath, pcd)
@@ -130,7 +129,7 @@ class pcd():
         duration = (end - start)
         self.times.append(duration)
 
-        return pcds, accep_masks, accep_ids
+        return pcds, accep_masks, accep_idxs
         
 
     def pcd_video(self):

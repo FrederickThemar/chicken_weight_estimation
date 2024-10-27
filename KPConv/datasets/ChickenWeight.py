@@ -179,7 +179,7 @@ class ChickenWeightDataset(PointCloudDataset):
         input_points = []
         input_infos = []
         input_labels = []
-        for pcd_obj in pcds:
+        for i, pcd_obj in enumerate(pcds):
             pcd = np.asarray(pcd_obj.points).astype(np.float32)
 
             # Subsample them
@@ -189,18 +189,18 @@ class ChickenWeightDataset(PointCloudDataset):
             else:
                 point = pcd[:, :3]
                 
-            points = []
-            points+=[point]
+            #points = [point]
+            #points += [point]
 
             # points = torch.tensor(points)
             
             # input_points = []
-            input_points += points
+            input_points.append(point)
 
-            lengths = [p.shape[0] for p in input_points]
-            sizes = [l * 4 * 6 for l in lengths]
+            #lengths = [p.shape[0] for p in input_points]
+            #sizes = [l * 4 * 6 for l in lengths]
 
-            input_infos += ['pcd']
+            input_infos += [f'pcd_{i:03d}']
             input_labels += [input_infos]
 
         if orient_correction:
@@ -216,19 +216,19 @@ class ChickenWeightDataset(PointCloudDataset):
         # print(f'PCD Len: {len(pcd)}')
         # Subsample them
         if self.config.first_subsampling_dl > 0:
-            point = grid_subsampling(pcd[:, :3], sampleDl=self.config.first_subsampling_dl)
+            input_points = [grid_subsampling(pcd[:, :3], sampleDl=self.config.first_subsampling_dl)]
         else:
-            point = pcd[:, :3]
-        points = []
-        points+=[point]
+            input_points = [pcd[:, :3]]
+        #points = []
+        #points += [point]
 
         # points = torch.tensor(points)
         
-        input_points = []
-        input_points += points
+        #input_points = points
+        #input_points += points
 
-        lengths = [p.shape[0] for p in input_points]
-        sizes = [l * 4 * 6 for l in lengths]
+        #lengths = [p.shape[0] for p in input_points]
+        #sizes = [l * 4 * 6 for l in lengths]
 
         input_labels = ['pcd']
         input_infos = np.array([input_labels])
