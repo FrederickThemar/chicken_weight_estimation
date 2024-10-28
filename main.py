@@ -88,18 +88,23 @@ class Main():
         # rgb_im = o3d.io.read_image(self.color_path)
 
         # Mask frame.
-        success, mask, _ = self.yolo.mask_frame(rgb, self.save)
+        success, masks, ids, boxes = self.yolo.mask_frame(rgb, self.save)
         if not success:
             print("ERROR: No chicken detected in frame.")
             exit(1)
         
-        pcd = self.pcd.pcd_frame(rgb, depth, mask, self.save)
-        if pcd == None:
+        pcds, accep_masks, pcd_idxs = self.pcd.pcd_frame(rgb, depth, masks, self.save)
+        if pcds == []:
             print("\nERROR: The mask for this frame falls outside the acceptable boundaries for the model. Try a different frame.")
             exit(1)
-        output = self.kpconv.estimate_frame(pcd)
+        outputs, accep_idxs = self.kpconv.estimate_frame(pcds, pcd_idxs)
 
-        print(f'\nOUTPUT:\t\t\n{output[0][0]}')
+        # print(f'\nOUTPUT:\t\t\n{outputs}')
+        for i in range(len(accep_idxs)):
+            # print(f'ID: {i}')
+            output = outputs[i][0][0]
+            print(f'ID {ids[i]}: {output} kg')
+        print()
         print(f'YOLO time:   {self.yolo.times}')
         print(f'PCD time:    {self.pcd.times}')
         print(f'KPConv time: {self.kpconv.times}')
@@ -193,6 +198,28 @@ class Main():
         # Draw acceptable masks and data onto image
         overlay = rgb.copy()
         # print(accep_idxs)
+
+        # Update the table
+        for i in range(len(accep_idxs)):
+            # print(f'ID: {i}')
+            # Initialize ID in table if not already there
+            if ids[accep_idxs[i]] not in self.table:
+                self.table[ids[accep_idxs[i]]] = {}
+                self.table[ids[accep_idxs[i]]]["list"] = []
+                self.table[ids[accep_idxs[i]]]["curr_size"] = 0
+                self.table[ids[accep_idxs[i]]]["curr_avg"] = 0
+            
+            # Add weight to corresponding ID array, update moving average
+            new_weight = outputs[i][0][0]
+            self.table[ids[accep_idxs[i]]]["list"].append(new_weight)           # Add new weight
+            curr_size = self.table[ids[accep_idxs[i]]]["curr_size"]             # Extract data for ID from table
+            curr_avg = self.table[ids[accep_idxs[i]]]["curr_avg"]
+            self.table[ids[accep_idxs[i]]]["curr_size"]+=1                      # Increment number of weight estimates for given ID
+            new_avg = ((curr_avg * curr_size) + new_weight ) / (curr_size + 1)  # Calc new avg
+            self.table[ids[accep_idxs[i]]]["curr_avg"] = new_avg                # Update avg for given ID
+
+            # self.table[ids[accep_idxs[i]]]["list"].append(outputs[i][0][0])
+
         for k in range(len(accep_idxs)):
             # Store index
             i = accep_idxs[k]
@@ -215,7 +242,7 @@ class Main():
             overlay = cv2.rectangle(overlay, top_left, bot_righ, color, -1)
             overlay = cv2.putText(
                 overlay,                                # Base img
-                "{:0.2f} kg".format(outputs[k][0][0]),  # Text
+                "{:0.2f} kg".format(self.table[ids[i]]["curr_avg"]),  # Text
                 (int(box[0])+5, int(box[1])-10),        # Org, ie bottom left
                 cv2.FONT_HERSHEY_SIMPLEX,               # Font
                 0.85,                                   # Font Scale
@@ -252,14 +279,6 @@ class Main():
         # print(len(accep_idxs))
         # print(len(ids))
         # print(len(outputs))
-        for i in range(len(accep_idxs)):
-            # print(f'ID: {i}')
-            # Initialize ID in table if not already there
-            if ids[accep_idxs[i]] not in self.table:
-                self.table[ids[accep_idxs[i]]] = []
-            
-            # Add weight to corresponding ID array
-            self.table[ids[accep_idxs[i]]].append(outputs[i][0][0])
         # print()
         # # Display the visualization frame
         # cv2.imshow('frame', overlay)
@@ -418,8 +437,11 @@ if __name__ == '__main__':
     # Acceptable mask
 
     # Used for mode=0, process frame
-    TEMP_path = '/mnt/khoavoho/datasets/chicken_weight_dataset/jzbumgar/Depth/Spring2024/20240409/chicken20/color/000098.jpg'
-    TEMP_depth = '/mnt/khoavoho/datasets/chicken_weight_dataset/jzbumgar/Depth/Spring2024/20240409/chicken20/depth/000098.png'
+    # TEMP_path = '/mnt/khoavoho/datasets/chicken_weight_dataset/jzbumgar/Depth/Spring2024/20240409/chicken20/color/000098.jpg'
+    # TEMP_depth = '/mnt/khoavoho/datasets/chicken_weight_dataset/jzbumgar/Depth/Spring2024/20240409/chicken20/depth/000098.png'
+    # These ones have two chickens
+    TEMP_path = '/mnt/khoavoho/datasets/chicken_weight_dataset/jzbumgar/Depth/Summer2024/20240619/color/000254.jpg'
+    TEMP_depth = '/mnt/khoavoho/datasets/chicken_weight_dataset/jzbumgar/Depth/Summer2024/20240619/depth/000254.png'
 
     # Used for mode=1, process video
     # TEMP_video = '/mnt/khoavoho/datasets/chicken_weight_dataset/jzbumgar/Spring2024/20240409/chicken_16.mkv'
@@ -431,8 +453,8 @@ if __name__ == '__main__':
     # TEMP_video = "/home/jzbumgar/Downloads/chicken_07(1).mkv"
 
     # Initialize Main object to handle the pipeline
-    # main = Main(path=TEMP_path, depth=TEMP_depth, mode=0)
-    main = Main(path=TEMP_video, mode=1)
+    main = Main(path=TEMP_path, depth=TEMP_depth, mode=0)
+    # main = Main(path=TEMP_video, mode=1)
     # main = Main(mode=2)
 
     # Begin the pipeline
