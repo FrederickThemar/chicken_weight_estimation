@@ -102,8 +102,10 @@ class Main():
         # print(f'\nOUTPUT:\t\t\n{outputs}')
         for i in range(len(accep_idxs)):
             # print(f'ID: {i}')
-            output = outputs[i][0][0]
+            output = outputs[0][i][0]
             print(f'ID {ids[i]}: {output} kg')
+        # print(outputs[0][0][0])
+        # print(outputs[0][1][0])
         print()
         print(f'YOLO time:   {self.yolo.times}')
         print(f'PCD time:    {self.pcd.times}')
@@ -210,7 +212,7 @@ class Main():
                 self.table[ids[accep_idxs[i]]]["curr_avg"] = 0
             
             # Add weight to corresponding ID array, update moving average
-            new_weight = outputs[i][0][0]
+            new_weight = outputs[0][i][0]
             self.table[ids[accep_idxs[i]]]["list"].append(new_weight)           # Add new weight
             curr_size = self.table[ids[accep_idxs[i]]]["curr_size"]             # Extract data for ID from table
             curr_avg = self.table[ids[accep_idxs[i]]]["curr_avg"]
@@ -442,6 +444,9 @@ if __name__ == '__main__':
     # These ones have two chickens
     TEMP_path = '/mnt/khoavoho/datasets/chicken_weight_dataset/jzbumgar/Depth/Summer2024/20240619/color/000254.jpg'
     TEMP_depth = '/mnt/khoavoho/datasets/chicken_weight_dataset/jzbumgar/Depth/Summer2024/20240619/depth/000254.png'
+    # Used for testing when certain masks get removed. 303.jpg processes both, but not 304.
+    TEMP_path = '/mnt/khoavoho/datasets/chicken_weight_dataset/jzbumgar/Depth/Summer2024/20240619/color/000304.jpg'
+    TEMP_depth = '/mnt/khoavoho/datasets/chicken_weight_dataset/jzbumgar/Depth/Summer2024/20240619/depth/000304.png'
 
     # Used for mode=1, process video
     # TEMP_video = '/mnt/khoavoho/datasets/chicken_weight_dataset/jzbumgar/Spring2024/20240409/chicken_16.mkv'
