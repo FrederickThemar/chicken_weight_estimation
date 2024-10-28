@@ -80,57 +80,58 @@ class kpconv():
 
         outputs   = []
         accep_idxs = []
-        for i in range(len(pcds)):
-            pcd = pcds[i]
+        # for i in range(len(pcds)):
+            # pcd = pcds[i]
 
-            # Create Dataloader
-            test_dataset = ChickenWeightDataset(self.config, pcd, train=False)
-            test_sampler = ChickenWeightSampler(test_dataset)
-            collate_fn = ChickenWeightCollate
+        # Create Dataloader
+        test_dataset = ChickenWeightDataset(self.config, pcds, train=False)
+        test_sampler = ChickenWeightSampler(test_dataset)
+        collate_fn = ChickenWeightCollate
 
-            test_loader = DataLoader(test_dataset,
-                                    batch_size=1,
-                                    sampler=test_sampler,
-                                    collate_fn=collate_fn,
-                                    num_workers=self.config.input_threads,
-                                    pin_memory=True)
+        test_loader = DataLoader(test_dataset,
+                                batch_size=1,
+                                sampler=test_sampler,
+                                collate_fn=collate_fn,
+                                num_workers=self.config.input_threads,
+                                pin_memory=True)
 
-            # Step 2: Feeding pcd to network
-            count = 0
-            loop_start = time.time()
-            # TRY THIS:
-            # output = self.net(test_dataset[0], self.config)
-            for batch in test_loader:
-                loop_end = time.time()
-                loop_time = loop_end - loop_start
-                self.loop_times.append(loop_time)
-                count_start = time.time()
-                count+=1
-                count_end = time.time()
-                count_time = count_end - count_start
-                self.count_times.append(count_time)
-                
-                batch_start = time.time()
-                batch.to(self.device)
-                batch_end = time.time()
-                batch_time = batch_end - batch_start
-                self.batch_times.append(batch_time)
+        # Step 2: Feeding pcd to network
+        count = 0
+        loop_start = time.time()
+        # TRY THIS:
+        # output = self.net(test_dataset[0], self.config)
+        for batch in test_loader:
+            loop_end = time.time()
+            loop_time = loop_end - loop_start
+            self.loop_times.append(loop_time)
+            count_start = time.time()
+            count+=1
+            count_end = time.time()
+            count_time = count_end - count_start
+            self.count_times.append(count_time)
+            
+            batch_start = time.time()
+            batch.to(self.device)
+            batch_end = time.time()
+            batch_time = batch_end - batch_start
+            self.batch_times.append(batch_time)
 
-                output_start = time.time()  
-                # print(batch)          
-                output = self.net(batch, self.config)
-                output_end = time.time()
-                output_time = output_end - output_start
-                self.output_times.append(output_time)
+            output_start = time.time()  
+            # print(batch)          
+            output = self.net(batch, self.config)
+            output_end = time.time()
+            output_time = output_end - output_start
+            self.output_times.append(output_time)
 
-                if count > 1:
-                    print("MORE THAN 1!!!")
-            self.counts_count.append(count)
-            # self.counts_len.append(len(test_loader))
+            if count > 1:
+                print("MORE THAN 1!!!")
+        self.counts_count.append(count)
+        # self.counts_len.append(len(test_loader))
 
-            output = output.cpu().detach().numpy()
-            outputs.append(output)
-            accep_idxs.append(idxs[i])
+        output = output.cpu().detach().numpy()
+        outputs.append(output)
+        # accep_idxs.append(idxs[i])
+        accep_idxs = idxs
 
         # Save process time
         end = time.time()

@@ -54,7 +54,7 @@ class ChickenWeightDataset(PointCloudDataset):
     """Class to handle Modelnet 40 dataset."""
 
     # def __init__(self, config, train=True, orient_correction=True):
-    def __init__(self, config, pcd, train=True, orient_correction=True):
+    def __init__(self, config, pcds, train=True, orient_correction=True):
         """
         This dataset is small enough to be stored in-memory, so load all point clouds here
         """
@@ -89,8 +89,8 @@ class ChickenWeightDataset(PointCloudDataset):
         #if 0 < self.config.first_subsampling_dl <= 0.01:
         #    raise ValueError('subsampling_parameter too low (should be over 1 cm')
 
-        self.input_points, self.input_infos, self.input_labels = self.load_single_cloud(orient_correction, pcd)
-        # self.input_points, self.input_infos, self.input_labels = self.load_mult_clouds(orient_correction, pcds)
+        # self.input_points, self.input_infos, self.input_labels = self.load_single_cloud(orient_correction, pcd)
+        self.input_points, self.input_infos, self.input_labels = self.load_mult_clouds(orient_correction, pcds)
         # self.input_labels *= self.weight_rescale
 
         # Number of models and models used per epoch
