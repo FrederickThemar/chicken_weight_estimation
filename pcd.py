@@ -31,7 +31,8 @@ class pcd():
         self.checkPath(self.outputPath)
 
         # Store default confidence box
-        self.defaultBox = [[350, 325],[1400,925]] 
+        # self.defaultBox = [[350, 325],[1400,925]]
+        self.defaultBox = [[350, 245],[1400,1000]] # NEW BOX
 
         self.times = []
 
@@ -42,8 +43,12 @@ class pcd():
         # self.depth_path = depthPath
         # self.color = color
         # self.depth = depth
-        # depth = cv2.cvtColor(depth, )
+        # depth = cv2.cvtColor(depth, cv2.COLOR_GRAY2BGR)
         # print(depth.dtype)
+
+        # cv2.imshow('frame', np.asarray(depth))
+        # cv2.waitKey(0)
+
 
         # Log start time of function
         start = time.time()
@@ -68,6 +73,8 @@ class pcd():
                 # print("\nERROR: The mask for this frame falls outside the acceptable boundaries for the model. Try a different frame.")
                 # exit(1)
                 # print("MASK NOT ACCEP")
+                # print(f'MASK {i} FAILS')
+                # print(len(masks))
                 continue
 
             # rgb = plt.imread(self.color_path) / 255
@@ -76,26 +83,30 @@ class pcd():
 
             # frame = cv2.imread(self.mask, flags=cv2.IMREAD_ANYCOLOR | cv2.IMREAD_ANYDEPTH)
             # Convert depth to openCV image to work with mask
-            temp_depth = np.asarray(depth)
+            depth_copy = np.asarray(depth).copy()
+            temp_depth = depth_copy
 
             frame = curr_mask
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             mask = np.zeros_like(frame)
             DEBUG_temp = np.zeros_like(temp_depth)
-            mask[frame > 0] = 1
-            mask[temp_depth < self.d_lo] = 0
-            mask[temp_depth > self.d_hi] = 0
+            mask[frame > 0] = 255
+            # mask[temp_depth < self.d_lo] = 0
+            # mask[temp_depth > self.d_hi] = 0
 
             # Stop here if this happens
             # if mask.all() == DEBUG_temp.all():
             #     print("MASK EMPTY")
                 # continue
-
+            # if i == 1:
+            #     cv2.imshow('frame', np.asarray(temp_depth))
+            #     cv2.waitKey(0)
             temp_depth[mask == 0] = 0
 
             # If depth is empty, the PCD will be as well. Thus, skip the mask
-            if (temp_depth == DEBUG_temp).all():
-                continue
+            # if (temp_depth == DEBUG_temp).all():
+            #     print(f'101 SKIP MASK {i}')
+            #     continue
 
             # Create pointcloud using depthmask
             # rgb_im = o3d.io.read_image(self.color_path)
@@ -109,17 +120,19 @@ class pcd():
             )
             pcd.translate(-pcd.get_center())
             # if len(np.asarray(pcd.points).astype(np.float32)) == 0:
-            #     cv2.imshow('frame', curr_mask)
-            #     cv2.waitKey(0)
+                # cv2.imshow('frame', np.asarray(rgb_im))
+                # cv2.waitKey(0)
             # print("APPENDING PCD")
 
-            if len(np.asarray(pcd.points).astype(np.float32)) < 10:
-                continue
+            # if len(np.asarray(pcd.points).astype(np.float32)) < 10:
+            #     print(f'MASK {i} TOO SMALL')
+            #     continue
 
             # Store PCD, mask, and index
             pcds.append(pcd)
             accep_masks.append(curr_mask)
             accep_idxs.append(i)
+            # print(f'APPENDING MASK {i}')
             # print(len(np.asarray(pcd.points).astype(np.float32)))
 
         # o3d.io.write_point_cloud(pcdPath, pcd)
