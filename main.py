@@ -362,23 +362,33 @@ class Main():
 
         count = 0
         outputs = []
-        while not reader.is_eof():
+        self.exit_early = False
+        while not reader.is_eof() and not self.exit_early:
             rgbd = reader.next_frame()
             if rgbd is None:
                 continue
 
             output, overlay = self.handle_rgbd(rgbd, count)
 
-            if output is None:
-                cv2.imshow('frame', overlay)
-                cv2.waitKey(10)
+            # if output is None:
+            #     cv2.imshow('frame', overlay)
+            #     cv2.waitKey(10)
             
-                count+=1
-                continue
+            #     count+=1
+            #     continue
 
             # Display the visualization frame
             cv2.imshow('frame', overlay)
-            cv2.waitKey(10)
+            key = cv2.waitKey(10)
+
+            # Exit early if Esc key hit
+            if key == 27:
+                print("ESCAPING")
+                self.exit_early = True
+
+            if output is None: 
+                count+=1
+                continue
 
             outputs.append(output)
             count+=1
@@ -453,16 +463,27 @@ class Main():
 
             output, overlay = self.handle_rgbd(rgbd, count)
 
-            if output is None:
-                cv2.imshow('frame', overlay)
-                cv2.waitKey(10)
+            # if output is None:
+            #     # cv2.imshow('frame', overlay)
+            #     # cv2.waitKey(10)
             
-                count+=1
-                continue
+            #     count+=1
+            #     continue
 
             # Display the visualization frame
             cv2.imshow('frame', overlay)
-            cv2.waitKey(10)
+            key = cv2.waitKey(10)
+
+            # If key is Esc, exit loop.
+            if key == 27:
+                print("ESCAPING")
+                self.flag_exit = True
+                # Don't exit early, make sure most recent
+
+            # Skip appending output if there is none
+            if output is None:
+                count+=1
+                continue
 
             outputs.append(output)
 
