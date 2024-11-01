@@ -4,6 +4,6 @@ testbed.py
 /outputDepMask
 /outputMask
 /__pycache__
-/YOLO
+/YOLO/*.pt
 /kernels
 notes.txt
