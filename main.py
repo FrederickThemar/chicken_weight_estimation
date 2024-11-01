@@ -51,6 +51,9 @@ class Main():
         # Used to store a list of the 
         self.table = {}
 
+        # Used when calculating moving average
+        self.ema_alpha = 0.1
+
     # Begins the pipeline based on the mode provided to the object
     def begin(self):
         if self.mode == 0:
@@ -110,6 +113,40 @@ class Main():
         print(f'YOLO time:   {self.yolo.times}')
         print(f'PCD time:    {self.pcd.times}')
         print(f'KPConv time: {self.kpconv.times}')
+
+        # DEBUG: Print out yolo IDs and acceptable indicesprint()
+        # print(ids)
+        # print(pcd_idxs)
+        # print(accep_idxs)
+        # print(ids[accep_idxs[0]])
+
+        # DEBUG: Draw bounding box onto overlay and display it
+        defaultBox = ((350, 245),(1400,1000)) # Bounding box coords
+        rgb = cv2.rectangle(rgb, defaultBox[0], defaultBox[1], (255,0,0), 2)
+
+        # # DEBUG: Draw box with ID over each chicken
+        for i in range(len(ids)):
+            box = boxes[i]
+            top_left = (int(box[0]), int(box[1])-35)
+            bot_righ = (int(box[0])+115, int(box[1]))
+
+            rgb = cv2.rectangle(rgb, (int(box[0]), int(box[1])), (int(box[2]), int(box[3])), (255,255,255), 2)
+            rgb = cv2.rectangle(rgb, top_left, bot_righ, (255,255,255), -1)
+            rgb = cv2.putText(
+                rgb,                                        # Base img
+                f'{ids[i]}',                                     # Text
+                (int(box[0])+5, int(box[1])-10),            # Org, ie bottom left
+                cv2.FONT_HERSHEY_SIMPLEX,                   # Font
+                0.85,                                       # Font Scale
+                (0,0,0),                                    # Color
+                1,                                          # Thickness
+                cv2.LINE_AA
+            )
+
+        # # DEBUG: Show frame
+        cv2.imshow('debug', rgb)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
 
     # Runs a given RGBD frame through the pipeline.
     def handle_rgbd(self, rgbd, count):
@@ -203,24 +240,24 @@ class Main():
 
         # Update the table
         for i in range(len(accep_idxs)):
-            # print(f'ID: {i}')
+            # Grab weight estimate
+            new_weight = outputs[0][i][0]
+
             # Initialize ID in table if not already there
             if ids[accep_idxs[i]] not in self.table:
                 self.table[ids[accep_idxs[i]]] = {}
                 self.table[ids[accep_idxs[i]]]["list"] = []
-                self.table[ids[accep_idxs[i]]]["curr_size"] = 0
-                self.table[ids[accep_idxs[i]]]["curr_avg"] = 0
+                self.table[ids[accep_idxs[i]]]["list"].append(new_weight)
+                self.table[ids[accep_idxs[i]]]["curr_size"] = 1
+                self.table[ids[accep_idxs[i]]]["curr_avg"] = new_weight
+                continue
             
             # Add weight to corresponding ID array, update moving average
-            new_weight = outputs[0][i][0]
-            self.table[ids[accep_idxs[i]]]["list"].append(new_weight)           # Add new weight
-            curr_size = self.table[ids[accep_idxs[i]]]["curr_size"]             # Extract data for ID from table
-            curr_avg = self.table[ids[accep_idxs[i]]]["curr_avg"]
-            self.table[ids[accep_idxs[i]]]["curr_size"]+=1                      # Increment number of weight estimates for given ID
-            new_avg = ((curr_avg * curr_size) + new_weight ) / (curr_size + 1)  # Calc new avg
-            self.table[ids[accep_idxs[i]]]["curr_avg"] = new_avg                # Update avg for given ID
-
-            # self.table[ids[accep_idxs[i]]]["list"].append(outputs[i][0][0])
+            self.table[ids[accep_idxs[i]]]["list"].append(new_weight)                       # Extract data for ID from table
+            curr_avg = self.table[ids[accep_idxs[i]]]["curr_avg"]                           # Grab current average
+            self.table[ids[accep_idxs[i]]]["curr_size"]+=1                                  # DEBUG: Increment size. Don't actually need this, only to quickly see when saving table.
+            new_avg = (self.ema_alpha * new_weight) + ((1 - self.ema_alpha) * curr_avg)     # (alpha * new) + ((1-alpha) * curr)
+            self.table[ids[accep_idxs[i]]]["curr_avg"] = new_avg                            # Update avg for given ID
 
         for k in range(len(accep_idxs)):
             # Store index
@@ -313,6 +350,16 @@ class Main():
         reader = o3d.io.AzureKinectMKVReader()
         reader.open(videopath)
 
+        # DEBUG: Video writer
+        # h, w, _ = cv2.imread('/mnt/khoavoho/datasets/chicken_weight_dataset/jzbumgar/Depth/Summer2024/20240619/color/000254.jpg').shape
+
+        # vid_writer = cv2.VideoWriter(
+        #     "./debug_visual.mp4",
+        #     cv2.VideoWriter_fourcc(*'mp4v'),
+        #     20.0,
+        #     (w, h)
+        # )
+
         count = 0
         outputs = []
         while not reader.is_eof():
@@ -335,12 +382,18 @@ class Main():
 
             outputs.append(output)
             count+=1
+            # DEBUG: Write video
+            # vid_writer.write(overlay)
+            
             # DEBUG: REMOVE LATER
             # if count > 60:
             #     break
             
         # Close the video
         reader.close()
+
+        # DEBUG: Close vid writer
+        # vid_writer.release()
 
         # Close cv2 window
         cv2.destroyAllWindows()
@@ -445,8 +498,10 @@ if __name__ == '__main__':
     TEMP_path = '/mnt/khoavoho/datasets/chicken_weight_dataset/jzbumgar/Depth/Summer2024/20240619/color/000254.jpg'
     TEMP_depth = '/mnt/khoavoho/datasets/chicken_weight_dataset/jzbumgar/Depth/Summer2024/20240619/depth/000254.png'
     # Used for testing when certain masks get removed. 303.jpg processes both, but not 304.
-    TEMP_path = '/mnt/khoavoho/datasets/chicken_weight_dataset/jzbumgar/Depth/Summer2024/20240619/color/000304.jpg'
-    TEMP_depth = '/mnt/khoavoho/datasets/chicken_weight_dataset/jzbumgar/Depth/Summer2024/20240619/depth/000304.png'
+    # TEMP_path = '/mnt/khoavoho/datasets/chicken_weight_dataset/jzbumgar/Depth/Summer2024/20240619/color/000304.jpg'
+    # TEMP_depth = '/mnt/khoavoho/datasets/chicken_weight_dataset/jzbumgar/Depth/Summer2024/20240619/depth/000304.png'
+    TEMP_path = '/mnt/khoavoho/datasets/chicken_weight_dataset/jzbumgar/Depth/Summer2024/20240619/color/000529.jpg'
+    TEMP_depth = '/mnt/khoavoho/datasets/chicken_weight_dataset/jzbumgar/Depth/Summer2024/20240619/depth/000529.png'
 
     # Used for mode=1, process video
     # TEMP_video = '/mnt/khoavoho/datasets/chicken_weight_dataset/jzbumgar/Spring2024/20240409/chicken_16.mkv'
@@ -458,8 +513,8 @@ if __name__ == '__main__':
     # TEMP_video = "/home/jzbumgar/Downloads/chicken_07(1).mkv"
 
     # Initialize Main object to handle the pipeline
-    main = Main(path=TEMP_path, depth=TEMP_depth, mode=0)
-    # main = Main(path=TEMP_video, mode=1)
+    # main = Main(path=TEMP_path, depth=TEMP_depth, mode=0)
+    main = Main(path=TEMP_video, mode=1)
     # main = Main(mode=2)
 
     # Begin the pipeline
