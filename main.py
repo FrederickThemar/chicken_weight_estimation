@@ -52,7 +52,7 @@ class Main():
         self.table = {}
 
         # Used when calculating moving average
-        self.ema_alpha = 0.1
+        self.ema_alpha = 0.025
 
     # Begins the pipeline based on the mode provided to the object
     def begin(self):
