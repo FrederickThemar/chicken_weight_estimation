@@ -26,10 +26,6 @@ class pcd():
 
         self.d_lo, self.d_hi = 10, 1500
 
-        # Path PCDs get temporarily stored in
-        self.outputPath = "./outputPCD/"
-        self.checkPath(self.outputPath)
-
         # Store default confidence box
         # self.defaultBox = [[350, 325],[1400,925]]
         self.defaultBox = [[350, 245],[1400,1000]] # NEW BOX
@@ -192,12 +188,6 @@ class pcd():
 
         return boxAcceptable
 
-    # HELPER: Checks if input filepath exists.
-    def checkPath(self, inputPath):
-        if not os.path.exists(inputPath):
-            print("ERROR: Path does not exist.")
-            print(f'Path: {inputPath}')
-            exit(1)
 
 # Showing the user a bounding box for a given image, and taking user input to make new box.
 class BoundingBoxWidget(object):

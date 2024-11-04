@@ -15,10 +15,6 @@ class yolo():
         # self.modelName = "20240615_med15" # Old model, can only segment one chicken.
         self.modelName = "20241013_mult2"
 
-        # Check output path
-        self.maskOutput = "./outputMask/"
-        self.checkPath(self.maskOutput)
-
         # Initialize model
         self.model = YOLO(f'./YOLO/{self.modelName}.pt')
 
@@ -135,10 +131,3 @@ class yolo():
     def mask_live(self):
         # Not sure how to do this one. Maybe the Main object should save some frames from video then call this?
         pass
-
-    # HELPER: Checks if input filepath exists.
-    def checkPath(self, inputPath):
-        if not os.path.exists(inputPath):
-            print("ERROR: Path does not exist.")
-            print(f'Path: {inputPath}')
-            exit(1)
