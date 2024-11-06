@@ -19,10 +19,6 @@ class kpconv():
         print("Initializing weight estimation model... ", end="", flush=True)
 
         self.chosen_log = './KPConv/models/Log_2024-07-20_22-13-05'
-        self.GPU_ID = '0' # GPU to be used
-        
-        # Set GPU visible device
-        os.environ['CUDA_VISIBLE_DEVICES'] = self.GPU_ID
 
         # Find all checkpoints in the chosen training folder
         self.chkp_path = os.path.join(self.chosen_log, 'checkpoints', 'current_chkp.tar')
