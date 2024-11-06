@@ -19,10 +19,10 @@ class kpconv():
         print("Initializing weight estimation model... ", end="", flush=True)
 
         self.chosen_log = './KPConv/models/Log_2024-07-20_22-13-05'
-        self.GPU_ID = '1' # GPU to be used
+        # self.GPU_ID = '0' # GPU to be used
         
         # Set GPU visible device
-        os.environ['CUDA_VISIBLE_DEVICES'] = self.GPU_ID
+        # os.environ['CUDA_VISIBLE_DEVICES'] = self.GPU_ID
 
         # Find all checkpoints in the chosen training folder
         self.chkp_path = os.path.join(self.chosen_log, 'checkpoints', 'current_chkp.tar')
@@ -59,29 +59,11 @@ class kpconv():
 
         print("Done!\n")
 
-    # def read_pcd(self, pcdPath):
-    #     pcd = np.asarray(o3d.io.read_point_cloud(pcdPath).points).astype(np.float32)
-    #     # Subsample them
-    #     if self.config.first_subsampling_dl > 0:
-    #         point = grid_subsampling(pcd[:, :3], sampleDl=self.config.first_subsampling_dl)
-    #     else:
-    #         point = pcd[:, :3]
-    #     points = []
-    #     points+=[point]
-    #     if self.orient_correction:
-    #         points = [pp[:, [0, 2, 1]] for pp in points]
-
-    #     # points = torch.tensor(points)
-    #     return points
-
-    def estimate_frame(self, pcds, idxs):
+    def estimate_frame(self, pcds):
         # Log start time of function
         start = time.time()
 
         outputs   = []
-        accep_idxs = []
-        # for i in range(len(pcds)):
-            # pcd = pcds[i]
 
         # Create Dataloader
         test_dataset = ChickenWeightDataset(self.config, pcds, train=False)
@@ -98,50 +80,26 @@ class kpconv():
         # Step 2: Feeding pcd to network
         count = 0
         loop_start = time.time()
-        # TRY THIS:
-        # output = self.net(test_dataset[0], self.config)
         for batch in test_loader:
-            loop_end = time.time()
-            loop_time = loop_end - loop_start
+            # DEBUG: Record time taken for the loop
+            loop_time = time.time() - loop_start
             self.loop_times.append(loop_time)
-            count_start = time.time()
+
             count+=1
-            count_end = time.time()
-            count_time = count_end - count_start
-            self.count_times.append(count_time)
-            
-            batch_start = time.time()
             batch.to(self.device)
-            batch_end = time.time()
-            batch_time = batch_end - batch_start
-            self.batch_times.append(batch_time)
-
-            output_start = time.time()  
-            # print(batch)          
             output = self.net(batch, self.config)
-            output_end = time.time()
-            output_time = output_end - output_start
-            self.output_times.append(output_time)
 
-            if count > 1:
-                print("MORE THAN 1!!!")
         self.counts_count.append(count)
-        # self.counts_len.append(len(test_loader))
 
         output = output.cpu().detach().numpy()
         outputs.append(output)
-        # accep_idxs.append(idxs[i])
-        accep_idxs = idxs
 
         # Save process time
         end = time.time()
         duration = (end - start)
         self.times.append(duration)
 
-        # print(len(outputs))
-        # if len(pcds) > 1:
-        #     print(len(pcds), len(outputs))
-        return outputs, accep_idxs
+        return outputs
 
     def estimate_video(self, pcdVideoPath):
         pcds = [self.read_pcd(pcdPath) for pcdPath in pcdVideoPath]

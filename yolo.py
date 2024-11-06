@@ -33,8 +33,6 @@ class yolo():
         print("Done!")
 
     def mask_frame(self, rgb, save):
-        # print("\nMasking frame... ")
-        # self.frame_path = path
 
         # Log start time of function
         start = time.time()
@@ -67,11 +65,8 @@ class yolo():
             img = np.copy(result.orig_img) # Original color frame
 
             # Get each mask on image
-            # labels = [] NOT USED
             for ci, c in enumerate(result):
                 isolated = np.zeros(img.shape[:3], np.uint8) # Blank image to draw masks onto
-                # label = c.names[c.boxes.cls.tolist().pop()]
-                # labels.append(label)
 
                 # Check if the tracking failed. If so, discard mask.
                 if c.boxes.id is None:
@@ -82,11 +77,7 @@ class yolo():
                 IDs.append(obj_id)
                 box = (c.boxes.xyxy).tolist()[0]
                 boxes.append(box)
-                # if obj_id == 0:
-                #     print(int(c.boxes.id[0]))
 
-                # DEBUG: REMOVE LATER
-                # print(c.masks.conf)
                 # Create contour mask
                 contour = c.masks.xy.pop().astype(np.int32).reshape(-1, 1, 2)
                 _ = cv2.drawContours(isolated, [contour], -1, self.colors[(obj_id % len(self.colors))-1], cv2.FILLED)
@@ -94,26 +85,10 @@ class yolo():
                 # Add mask to list
                 masks.append(isolated)
 
-            # Draw part mask covers onto blank image
-            # mask3ch = cv2.cvtColor(isolated, cv2.COLOR_GRAY2BGR)
-            # isolated = cv2.bitwise_and(mask3ch, img)
-
             # Save isolated mask into temp folder
             if save:
                 maskOutputDir = f'{self.maskOutput}/{origEnd}.png'
                 cv2.imwrite(maskOutputDir, isolated)
-
-            # self.savedMask = isolated
-            # overlay = np.asarray(result.cpu().numpy())
-            # overlay = None
-            # overlay = result.plot()
-
-            # Draw mask onto overlay frame
-            # overlay = img.copy()
-            mask_location = isolated.astype(bool)
-            # print(overlay)
-            # print()
-            # overlay[mask_location] = cv2.addWeighted(img, self.alpha, isolated, self.beta, 0.0)[mask_location]
 
         if success is not False:
             # Save process time
@@ -123,11 +98,3 @@ class yolo():
 
         # return success, masks, overlay, IDs
         return success, masks, IDs, boxes
-
-    def mask_video(self, path):
-        self.video_path = path
-        print(self.video_path)
-
-    def mask_live(self):
-        # Not sure how to do this one. Maybe the Main object should save some frames from video then call this?
-        pass

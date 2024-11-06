@@ -48,7 +48,7 @@ class Main():
         self.alpha = 0.3
         self.beta = 1 - self.alpha
 
-        # Used to store a list of the 
+        # Used to store a the estimates and average for each ID given by YOLO
         self.table = {}
 
         # Used when calculating moving average
@@ -86,9 +86,7 @@ class Main():
             exit(1)
         self.checkPath(self.depth_path)
         depthpath = self.depth_path
-        # depth = cv2.imread(self.depth_path, flags=cv2.IMREAD_ANYCOLOR | cv2.IMREAD_ANYDEPTH)
         depth = o3d.io.read_image(self.depth_path)
-        # rgb_im = o3d.io.read_image(self.color_path)
 
         # Mask frame.
         success, masks, ids, boxes = self.yolo.mask_frame(rgb, self.save)
@@ -102,71 +100,49 @@ class Main():
             exit(1)
         outputs, accep_idxs = self.kpconv.estimate_frame(pcds, pcd_idxs)
 
-        # print(f'\nOUTPUT:\t\t\n{outputs}')
         for i in range(len(accep_idxs)):
             # print(f'ID: {i}')
             output = outputs[0][i][0]
             print(f'ID {ids[i]}: {output} kg')
-        # print(outputs[0][0][0])
-        # print(outputs[0][1][0])
         print()
         print(f'YOLO time:   {self.yolo.times}')
         print(f'PCD time:    {self.pcd.times}')
         print(f'KPConv time: {self.kpconv.times}')
 
-        # DEBUG: Print out yolo IDs and acceptable indicesprint()
-        # print(ids)
-        # print(pcd_idxs)
-        # print(accep_idxs)
-        # print(ids[accep_idxs[0]])
-
         # DEBUG: Draw bounding box onto overlay and display it
-        defaultBox = ((350, 245),(1400,1000)) # Bounding box coords
-        rgb = cv2.rectangle(rgb, defaultBox[0], defaultBox[1], (255,0,0), 2)
+        # defaultBox = ((350, 245),(1400,1000)) # Bounding box coords
+        # rgb = cv2.rectangle(rgb, defaultBox[0], defaultBox[1], (255,0,0), 2)
 
-        # # DEBUG: Draw box with ID over each chicken
-        for i in range(len(ids)):
-            box = boxes[i]
-            top_left = (int(box[0]), int(box[1])-35)
-            bot_righ = (int(box[0])+115, int(box[1]))
+        # for i in range(len(ids)):
+        #     box = boxes[i]
+        #     top_left = (int(box[0]), int(box[1])-35)
+        #     bot_righ = (int(box[0])+115, int(box[1]))
 
-            rgb = cv2.rectangle(rgb, (int(box[0]), int(box[1])), (int(box[2]), int(box[3])), (255,255,255), 2)
-            rgb = cv2.rectangle(rgb, top_left, bot_righ, (255,255,255), -1)
-            rgb = cv2.putText(
-                rgb,                                        # Base img
-                f'{ids[i]}',                                     # Text
-                (int(box[0])+5, int(box[1])-10),            # Org, ie bottom left
-                cv2.FONT_HERSHEY_SIMPLEX,                   # Font
-                0.85,                                       # Font Scale
-                (0,0,0),                                    # Color
-                1,                                          # Thickness
-                cv2.LINE_AA
-            )
+        #     rgb = cv2.rectangle(rgb, (int(box[0]), int(box[1])), (int(box[2]), int(box[3])), (255,255,255), 2)
+        #     rgb = cv2.rectangle(rgb, top_left, bot_righ, (255,255,255), -1)
+        #     rgb = cv2.putText(
+        #         rgb,                                        # Base img
+        #         f'{ids[i]}',                                # Text
+        #         (int(box[0])+5, int(box[1])-10),            # Org, ie bottom left
+        #         cv2.FONT_HERSHEY_SIMPLEX,                   # Font
+        #         0.85,                                       # Font Scale
+        #         (0,0,0),                                    # Color
+        #         1,                                          # Thickness
+        #         cv2.LINE_AA
+        #     )
 
         # # DEBUG: Show frame
-        cv2.imshow('debug', rgb)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        # cv2.imshow('debug', rgb)
+        # cv2.waitKey(0)
+        # cv2.destroyAllWindows()
 
     # Runs a given RGBD frame through the pipeline.
     def handle_rgbd(self, rgbd, count):
         # Store the rgb and depth frames
-        # rgb = rgbd.rgb
         depth = rgbd.depth
-        
-        # This might not be needed!
-        # DEBUG_depthCV2 = np.asarray(depth)
-        # DEBUG_depthCV2 = cv2.cvtColor(DEBUG_depthCV2, cv2.COLOR_RGB2BGR)
         rgb = np.asarray(rgbd.color)
         rgb = cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR)
-        # print(DEBUG_depthCV2.dtype)
-        # cv2.imwrite('img.png',DEBUG_depthCV2)
-        # o3d.io.write_image('img2.png', depth)
-        # cv2.waitKey(0)
         
-        # DEBUG: REMOVE LATER
-        # print(count+1)
-        # success, masks, overlay, ids = self.yolo.mask_frame(rgb, self.save)
         success, masks, ids, boxes = self.yolo.mask_frame(rgb, self.save)
         
         if len(masks) != len(ids) or len(masks) != len(boxes):
@@ -175,11 +151,7 @@ class Main():
             print(len(ids))
             print(len(boxes))
             exit(1)
-        # DEBUG:
-        # if len(masks) != len(ids):
-        #     print("ERROR: LENGTHS DON'T MATCH")
-        #     print(count+1)
-        #     print()
+
         if not success:
             # Write frame count
             rgb = cv2.rectangle(rgb, (0, 0), (250, 50), (200,0,0), -1)
@@ -188,23 +160,12 @@ class Main():
                 f'Frame: {count+1}',
                 (15, 35),
                 cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
-            # cv2.imshow('frame', rgb)
-            # cv2.waitKey(10)
             
             return None, rgb
-            # count+=1
-            # continue
             
-        # contours, _ = cv2.findContours(mask.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        # print(f'Len IDS: \t{len(ids)}')
-        # print(f'Len con: \t')
-        # print(count+1)
-        pcds, accep_masks, pcd_idxs = self.pcd.pcd_frame(rgb, depth, masks, self.save)
-        # print(ids)
-        # print(pcd_idxs)
-        # Write frame count
-            # cv2.imshow('frame', rgb)
-            # cv2.waitKey(10)
+        # Generate pointclouds from masks
+        pcds, accep_masks, accep_idxs = self.pcd.pcd_frame(rgb, depth, masks, self.save)
+        
         if pcds == []:
             rgb = cv2.rectangle(rgb, (0, 0), (250, 50), (200,0,0), -1)
             rgb = cv2.putText(
@@ -221,22 +182,12 @@ class Main():
                 (15, 85),
                 cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
             return None, rgb
-            # count+=1
-            # continue
 
-        # print("MADE IT TO KPCONV")
-        # if len(pcds) > 1:
-        #     print(count+1)
-        #     print(len(pcds))
-        #     print()
-        # print()
-        outputs, accep_idxs = self.kpconv.estimate_frame(pcds, pcd_idxs)
-        # print(len(outputs[0]))
-        # outputs.append(output)
-        
+        pcd_idxs = []
+        outputs = self.kpconv.estimate_frame(pcds)
+        # accep_idxs = pcd_idxs
         # Draw acceptable masks and data onto image
         overlay = rgb.copy()
-        # print(accep_idxs)
 
         # Update the table
         for i in range(len(accep_idxs)):
@@ -297,68 +248,20 @@ class Main():
             f'Frame: {count+1}',
             (15, 35),
             cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
-        # for output in outputs:
-        #     # Write output on visualization frame
-        #     overlay = cv2.rectangle(overlay, (0, 50), (250, 100), (0,200,0), -1)
-        #     overlay = cv2.putText(
-        #         overlay,
-        #         'Output: %.2f' % round(output[0][0],2),
-        #         (15, 85),
-        #         cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
-
-        # if len(outputs) > 1:
-        #     print(count+1)
-        #     for i in range(len(accep_ids)):
-        #         print(f'ID: \t{accep_ids[i]}')
-        #         print(f'Wei:\t{outputs[i]}')
-        #     print(f'IDs: \t{ids}')
-        #     print()
-
-        # Add info to table
-        # print(len(accep_idxs))
-        # print(len(ids))
-        # print(len(outputs))
-        # print()
-        # # Display the visualization frame
-        # cv2.imshow('frame', overlay)
-        # cv2.waitKey(10)
         
         return outputs, overlay
-
-        # count+=1
-        # break
 
 
     # Estimates weight of all the frames in a video
     def process_video(self):
-        # Maybe use process_frame for this? 
-        #   - Can have pframe return estimate and append to list
-        #   - Save the frames separately, then have a list storing the paths to each. Give to pframe() 
-        #       - Maybe each item in array can be another JSON, with paths to mask, depth, and rgb?
-        #   - TQDM can run based on number of files in frame folder
-        
         # Log start time of function
         start = time.time()
 
         videopath = self.init_path
 
-        # # Keyboard commands used for pausing/stopping program
-        # glfw_key_escape = 256
-        # glfw_key_space = 32
-
         # Open the video
         reader = o3d.io.AzureKinectMKVReader()
         reader.open(videopath)
-
-        # DEBUG: Video writer
-        # h, w, _ = cv2.imread('/mnt/khoavoho/datasets/chicken_weight_dataset/jzbumgar/Depth/Summer2024/20240619/color/000254.jpg').shape
-
-        # vid_writer = cv2.VideoWriter(
-        #     "./debug_visual.mp4",
-        #     cv2.VideoWriter_fourcc(*'mp4v'),
-        #     20.0,
-        #     (w, h)
-        # )
 
         count = 0
         outputs = []
@@ -369,13 +272,6 @@ class Main():
                 continue
 
             output, overlay = self.handle_rgbd(rgbd, count)
-
-            # if output is None:
-            #     cv2.imshow('frame', overlay)
-            #     cv2.waitKey(10)
-            
-            #     count+=1
-            #     continue
 
             # Display the visualization frame
             cv2.imshow('frame', overlay)
@@ -392,18 +288,9 @@ class Main():
 
             outputs.append(output)
             count+=1
-            # DEBUG: Write video
-            # vid_writer.write(overlay)
-            
-            # DEBUG: REMOVE LATER
-            # if count > 60:
-            #     break
             
         # Close the video
         reader.close()
-
-        # DEBUG: Close vid writer
-        # vid_writer.release()
 
         # Close cv2 window
         cv2.destroyAllWindows()
@@ -413,22 +300,12 @@ class Main():
         duration = (end - start)
         print(f'PROCESS TIME: {duration} seconds, {duration/60} minutes')
         print(f'YOLO avg time:   {np.mean(self.yolo.times)}')
-        # print(f'YOLO time len:   {len(self.yolo.times)}')
         print(f'PCD avg time:    {np.mean(self.pcd.times)}')
-        # print(f'PCD time len:    {len(self.pcd.times)}')
         print(f'KPConv avg time: {np.mean(self.kpconv.times)}')
-        # print(f'KPConv time len: {len(self.kpconv.times)}')
-        # print(self.yolo.times)
-        # print(f'\nCount avg time:   {np.mean(self.kpconv.count_times)}')
-        # print(f'Batch avg time:   {np.mean(self.kpconv.batch_times)}')
-        # print(f'Output avg time:  {np.mean(self.kpconv.output_times)}')
         print(f'\nLoop start time:  {np.mean(self.kpconv.loop_times)}')
-        # print(f'For loop len:     {np.mean(self.kpconv.counts_len)}')
-        # print(f'For loop count:   {np.mean(self.kpconv.counts_count)}')
-        # print(f'Lens: count {len(self.kpconv.count_times)}, batch {len(self.kpconv.batch_times)}, outputs {len(self.kpconv.output_times)}, loop {len(self.kpconv.loop_times)}')
 
         # DEBUG: print table
-        print(self.table)
+        #print(self.table)
 
     # Callback function. Exit loop in process_live when user hits Esc
     def escape_callback(self, vis):
