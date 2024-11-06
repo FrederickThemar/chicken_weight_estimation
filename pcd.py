@@ -120,9 +120,11 @@ class pcd():
                 # cv2.waitKey(0)
             # print("APPENDING PCD")
 
-            # if len(np.asarray(pcd.points).astype(np.float32)) < 10:
-            #     print(f'MASK {i} TOO SMALL')
-            #     continue
+            # Sometimes YOLO provides a poor mask that will create a poor PCD, causing a crash in KPConv.
+            # End early when the PCD is too sparse.
+            if len(np.asarray(pcd.points).astype(np.float32)) < 10:
+                # print(f'MASK {i} TOO SMALL')
+                continue
 
             # Store PCD, mask, and index
             pcds.append(pcd)
