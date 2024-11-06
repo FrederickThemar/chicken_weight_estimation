@@ -185,7 +185,7 @@ class Main():
 
         pcd_idxs = []
         outputs = self.kpconv.estimate_frame(pcds)
-        # accep_idxs = pcd_idxs
+        
         # Draw acceptable masks and data onto image
         overlay = rgb.copy()
 
@@ -314,7 +314,8 @@ class Main():
 
     def process_live(self):
         # Config for live Azure
-        config = o3d.io.AzureKinectSensorConfig()
+        # config = o3d.io.AzureKinectSensorConfig()
+        config = o3d.io.read_azure_kinect_sensor_config("./config.json")
 
         # Create the object for reading from the camera
         self.sensor = o3d.io.AzureKinectSensor(config)
