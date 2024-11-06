@@ -19,10 +19,10 @@ class kpconv():
         print("Initializing weight estimation model... ", end="", flush=True)
 
         self.chosen_log = './KPConv/models/Log_2024-07-20_22-13-05'
-        # self.GPU_ID = '0' # GPU to be used
+        self.GPU_ID = '0' # GPU to be used
         
         # Set GPU visible device
-        # os.environ['CUDA_VISIBLE_DEVICES'] = self.GPU_ID
+        os.environ['CUDA_VISIBLE_DEVICES'] = self.GPU_ID
 
         # Find all checkpoints in the chosen training folder
         self.chkp_path = os.path.join(self.chosen_log, 'checkpoints', 'current_chkp.tar')
@@ -51,11 +51,6 @@ class kpconv():
 
         self.times = []
         self.loop_times = []
-        self.count_times = []
-        self.batch_times = []
-        self.output_times = []
-        self.counts_len = []
-        self.counts_count = []
 
         print("Done!\n")
 
@@ -63,7 +58,7 @@ class kpconv():
         # Log start time of function
         start = time.time()
 
-        outputs   = []
+        outputs = []
 
         # Create Dataloader
         test_dataset = ChickenWeightDataset(self.config, pcds, train=False)
@@ -88,8 +83,6 @@ class kpconv():
             count+=1
             batch.to(self.device)
             output = self.net(batch, self.config)
-
-        self.counts_count.append(count)
 
         output = output.cpu().detach().numpy()
         outputs.append(output)
