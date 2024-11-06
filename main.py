@@ -275,7 +275,7 @@ class Main():
 
             # Display the visualization frame
             cv2.imshow('frame', overlay)
-            key = cv2.waitKey(10)
+            key = cv2.waitKey(1)
 
             # Exit early if Esc key hit
             if key == 27:
@@ -313,15 +313,8 @@ class Main():
         return False
 
     def process_live(self):
-        # Idea: Have it show avg error every 10 frames processed
-        #   - Can show a message saying 'No chicken detected!' if nothing seen by YOLO yet.
-        #   - Use a Bool to see if chicken detected since program began, and a second to see if prev message printed yet
-        print("BEGIN LIVE PROCESS")
         # Config for live Azure
         config = o3d.io.AzureKinectSensorConfig()
-
-        # # viewer = ViewerWithCallback(config, 0, True)
-        # # viewer.run()
 
         # Create the object for reading from the camera
         self.sensor = o3d.io.AzureKinectSensor(config)
@@ -340,16 +333,9 @@ class Main():
 
             output, overlay = self.handle_rgbd(rgbd, count)
 
-            # if output is None:
-            #     # cv2.imshow('frame', overlay)
-            #     # cv2.waitKey(10)
-            
-            #     count+=1
-            #     continue
-
             # Display the visualization frame
             cv2.imshow('frame', overlay)
-            key = cv2.waitKey(10)
+            key = cv2.waitKey(1)
 
             # If key is Esc, exit loop.
             if key == 27:
@@ -372,11 +358,6 @@ class Main():
         
         # Close cv2 window
         cv2.destroyAllWindows()
-
-
-# DEBUG: Prints debug messages. Remove later.
-def log(inputStr):
-    print(inputStr)
 
 
 # Main function
