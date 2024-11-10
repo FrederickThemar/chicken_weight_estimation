@@ -279,7 +279,6 @@ class Main():
 
             # Exit early if Esc key hit
             if key == 27:
-                print("ESCAPING")
                 self.exit_early = True
 
             if output is None: 
@@ -341,7 +340,6 @@ class Main():
 
             # If key is Esc, exit loop.
             if key == 27:
-                print("ESCAPING")
                 self.flag_exit = True
                 # Don't exit early, make sure most recent
 
