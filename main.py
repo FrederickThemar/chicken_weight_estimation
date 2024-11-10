@@ -174,13 +174,6 @@ class Main():
                 (15, 35),
                 cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
 
-            # No mask detected, write "N/A"
-            rgb = cv2.rectangle(rgb, (0, 50), (250, 100), (0,200,0), -1)
-            rgb = cv2.putText(
-                rgb,
-                'Output: N/A',
-                (15, 85),
-                cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
             return None, rgb
 
         pcd_idxs = []
