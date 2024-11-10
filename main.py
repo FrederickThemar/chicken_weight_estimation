@@ -328,7 +328,7 @@ class Main():
         start = time.time()
         while not self.flag_exit:
 
-            rgbd = self.sensor.capture_frame()
+            rgbd = self.sensor.capture_frame(True)
             if rgbd is None:
                 continue
 
