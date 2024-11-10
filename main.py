@@ -355,8 +355,7 @@ class Main():
             # Want loop to end after 60 seconds
             end = time.time()
             duration = end - start
-            if duration > 60:
-                self.flag_exit = True
+            count+=1
         
         # Close cv2 window
         cv2.destroyAllWindows()
