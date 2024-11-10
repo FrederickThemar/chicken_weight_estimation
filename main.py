@@ -325,6 +325,7 @@ class Main():
 
         self.flag_exit = False
         outputs = []
+        count = 0
         start = time.time()
         while not self.flag_exit:
 
