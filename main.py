@@ -189,6 +189,12 @@ class Main():
         # Draw acceptable masks and data onto image
         overlay = rgb.copy()
 
+        # Make areas outside bounding box darker
+        isolated = np.zeros(overlay.shape[:3], np.uint8)
+        isolated = cv2.rectangle(isolated, self.pcd.defaultBox[0], self.pcd.defaultBox[1], (255,255,255), -1)
+        iso_loc = np.invert(isolated.astype(bool))
+        overlay[iso_loc] = cv2.addWeighted(overlay, self.alpha, isolated, self.beta, 0.0)[iso_loc]
+
         # Update the table
         for i in range(len(accep_idxs)):
             # Grab weight estimate
