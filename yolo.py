@@ -46,6 +46,8 @@ class yolo():
         IDs      = []
         boxes    = []
         masks    = []
+        map_ids  = []
+        clrUsed  = []
         for result in results:
             mask = result.masks
             if mask is None:
@@ -78,9 +80,20 @@ class yolo():
                 box = (c.boxes.xyxy).tolist()[0]
                 boxes.append(box)
 
+                # Do a linear probe to find an unused color
+                if len(results) > 9:
+                    color = self.colors[0]
+                else:
+                    mappedID = (obj_id % len(self.colors))-1
+                    while mappedID in map_ids:
+                        mappedID = (mappedID + 1) % len(self.colors)
+                    map_ids.append(mappedID)
+                    color = self.colors[mappedID]
+                clrUsed.append(color)
+
                 # Create contour mask
                 contour = c.masks.xy.pop().astype(np.int32).reshape(-1, 1, 2)
-                _ = cv2.drawContours(isolated, [contour], -1, self.colors[(obj_id % len(self.colors))-1], cv2.FILLED)
+                _ = cv2.drawContours(isolated, [contour], -1, color, cv2.FILLED)
 
                 # Add mask to list
                 masks.append(isolated)
@@ -97,4 +110,4 @@ class yolo():
             self.times.append(duration)
 
         # return success, masks, overlay, IDs
-        return success, masks, IDs, boxes
+        return success, masks, IDs, boxes, clrUsed

@@ -143,7 +143,7 @@ class Main():
         rgb = np.asarray(rgbd.color)
         rgb = cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR)
         
-        success, masks, ids, boxes = self.yolo.mask_frame(rgb, self.save)
+        success, masks, ids, boxes, colors = self.yolo.mask_frame(rgb, self.save)
         
         if len(masks) != len(ids) or len(masks) != len(boxes):
             print("ERROR: LENGTHS DON'T MATCH")
@@ -224,8 +224,7 @@ class Main():
             top_left = (int(box[0]), int(box[1])-35)
             bot_righ = (int(box[0])+115, int(box[1]))
             # Get color
-            color_idx = ids[i] % len(self.yolo.colors)
-            color = self.yolo.colors[color_idx-1]
+            color = colors[i]
             # Draw the boxes and text
             overlay = cv2.rectangle(overlay, (int(box[0]), int(box[1])), (int(box[2]), int(box[3])), color, 2)
             overlay = cv2.rectangle(overlay, top_left, bot_righ, color, -1)
@@ -339,6 +338,7 @@ class Main():
 
             # If key is Esc, exit loop.
             if key == 27:
+                print("EXITING EARLY")
                 self.flag_exit = True
                 # Don't exit early, make sure most recent
 
