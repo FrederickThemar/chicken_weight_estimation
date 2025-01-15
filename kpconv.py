@@ -62,7 +62,7 @@ class kpconv():
         collate_fn = ChickenWeightCollate
 
         test_loader = DataLoader(test_dataset,
-                                batch_size=1,
+                                batch_size=16,
                                 sampler=test_sampler,
                                 collate_fn=collate_fn,
                                 num_workers=self.config.input_threads,
