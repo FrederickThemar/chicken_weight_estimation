@@ -62,7 +62,7 @@ class kpconv():
         collate_fn = ChickenWeightCollate
 
         test_loader = DataLoader(test_dataset,
-                                batch_size=16,
+                                batch_size=1,
                                 sampler=test_sampler,
                                 collate_fn=collate_fn,
                                 num_workers=self.config.input_threads,
@@ -80,8 +80,9 @@ class kpconv():
             batch.to(self.device)
             output = self.net(batch, self.config)
 
-        output = output.cpu().detach().numpy()
-        outputs.append(output)
+            output = output.cpu().detach().numpy()
+            outputs.append(output)
+        outputs = np.concatenate(outputs, axis=0)
 
         # Save process time
         end = time.time()

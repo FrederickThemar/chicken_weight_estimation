@@ -89,20 +89,20 @@ class Main():
         depth = o3d.io.read_image(self.depth_path)
 
         # Mask frame.
-        success, masks, ids, boxes = self.yolo.mask_frame(rgb, self.save)
+        success, masks, ids, boxes, colors = self.yolo.mask_frame(rgb, self.save)
         if not success:
             print("ERROR: No chicken detected in frame.")
             exit(1)
         
-        pcds, accep_masks, pcd_idxs = self.pcd.pcd_frame(rgb, depth, masks, self.save)
+        pcds, accep_masks, accep_idxs = self.pcd.pcd_frame(rgb, depth, masks, self.save)
         if pcds == []:
             print("\nERROR: The mask for this frame falls outside the acceptable boundaries for the model. Try a different frame.")
             exit(1)
-        outputs, accep_idxs = self.kpconv.estimate_frame(pcds, pcd_idxs)
-
+        outputs = self.kpconv.estimate_frame(pcds)
+        
         for i in range(len(accep_idxs)):
             # print(f'ID: {i}')
-            output = outputs[0][i][0]
+            output = outputs[i][0]
             print(f'ID {ids[i]}: {output} kg')
         print()
         print(f'YOLO time:   {self.yolo.times}')
@@ -191,7 +191,7 @@ class Main():
         # Update the table
         for i in range(len(accep_idxs)):
             # Grab weight estimate
-            new_weight = outputs[0][i][0]
+            new_weight = outputs[i][0]
 
             # Initialize ID in table if not already there
             if ids[accep_idxs[i]] not in self.table:
@@ -372,22 +372,24 @@ if __name__ == '__main__':
     # TEMP_path = '/mnt/khoavoho/datasets/chicken_weight_dataset/jzbumgar/Depth/Spring2024/20240409/chicken20/color/000098.jpg'
     # TEMP_depth = '/mnt/khoavoho/datasets/chicken_weight_dataset/jzbumgar/Depth/Spring2024/20240409/chicken20/depth/000098.png'
     # These ones have two chickens
-    TEMP_path = '/mnt/khoavoho/datasets/chicken_weight_dataset/jzbumgar/Depth/Summer2024/20240619/color/000254.jpg'
-    TEMP_depth = '/mnt/khoavoho/datasets/chicken_weight_dataset/jzbumgar/Depth/Summer2024/20240619/depth/000254.png'
+    # TEMP_path = '/mnt/khoavoho/datasets/chicken_weight_dataset/jzbumgar/Depth/Summer2024/20240619/color/000254.jpg'
+    # TEMP_depth = '/mnt/khoavoho/datasets/chicken_weight_dataset/jzbumgar/Depth/Summer2024/20240619/depth/000254.png'
     # Used for testing when certain masks get removed. 303.jpg processes both, but not 304.
     # TEMP_path = '/mnt/khoavoho/datasets/chicken_weight_dataset/jzbumgar/Depth/Summer2024/20240619/color/000304.jpg'
     # TEMP_depth = '/mnt/khoavoho/datasets/chicken_weight_dataset/jzbumgar/Depth/Summer2024/20240619/depth/000304.png'
-    TEMP_path = '/mnt/khoavoho/datasets/chicken_weight_dataset/jzbumgar/Depth/Summer2024/20240619/color/000529.jpg'
-    TEMP_depth = '/mnt/khoavoho/datasets/chicken_weight_dataset/jzbumgar/Depth/Summer2024/20240619/depth/000529.png'
+    TEMP_path = '/mnt/khoavoho/datasets/chicken_weight_dataset/aviagen_frames/color/000001.jpg'
+    TEMP_depth = '/mnt/khoavoho/datasets/chicken_weight_dataset/aviagen_frames/depth/000001.png'
 
     # Used for mode=1, process video
     # TEMP_video = '/mnt/khoavoho/datasets/chicken_weight_dataset/jzbumgar/Spring2024/20240409/chicken_16.mkv'
     # TEMP_video = '/mnt/khoavoho/datasets/chicken_weight_dataset/jzbumgar/Spring2024/20240306/chicken_16.mkv'
 
     # Used with mode=1, has multiple chickens
-    # TEMP_video = "/home/jzbumgar/datasets/Summer_videos/20240617_chicken03.mkv"
+    #TEMP_video = "/home/jzbumgar/datasets/Summer_videos/20240603_chicken03.mkv"
     TEMP_video = "/home/jzbumgar/datasets/Summer_videos/20240619_chicken03.mkv"
     # TEMP_video = "/home/jzbumgar/Downloads/chicken_07(1).mkv"
+
+    # TEMP_video = "/mnt/khoavoho/datasets/chicken_weight_dataset/jzbumgar/Spring2024/20240304/chicken_16.mkv"
 
     # Initialize Main object to handle the pipeline
     # main = Main(path=TEMP_path, depth=TEMP_depth, mode=0)
